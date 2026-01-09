@@ -154,15 +154,11 @@ export default function JobPage() {
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-green-500 flex items-center justify-center text-white font-bold">
-                H
-              </div>
-              <h1 className="text-2xl font-bold">
-                <span className="text-foreground">Hook</span>
-                <span className="text-green-500">Scale</span>
-              </h1>
-            </div>
+            <h1 className="text-2xl font-bold">
+              <span className="text-foreground">Hook</span>
+              <span className="text-green-500">Scale</span>
+              <span className="text-foreground/50">.ai</span>
+            </h1>
           </div>
           <ThemeToggle />
         </div>

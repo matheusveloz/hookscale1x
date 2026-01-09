@@ -1,21 +1,70 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { Upload, X } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { Upload, X, Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { cn, formatBytes, validateVideoFile } from "@/lib/utils";
 import type { VideoType } from "@/types";
+import type { UploadedVideo } from "@/types/uploaded-video";
 
 interface UploadZoneProps {
   type: VideoType;
-  files: File[];
-  onFilesChange: (files: File[]) => void;
+  videos: UploadedVideo[];
+  onVideosChange: (videos: UploadedVideo[]) => void;
 }
 
-export function UploadZone({ type, files, onFilesChange }: UploadZoneProps) {
+export function UploadZone({ type, videos, onVideosChange }: UploadZoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const uploadFile = async (file: File) => {
+    const newVideo: UploadedVideo = {
+      file,
+      type,
+      uploading: true,
+      progress: 0,
+    };
+
+    // Add to list immediately
+    onVideosChange([...videos, newVideo]);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("type", type);
+
+      const response = await fetch("/api/upload-file", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Upload failed");
+      }
+
+      const data = await response.json();
+
+      // Update video with blob_url
+      onVideosChange(prev =>
+        prev.map(v =>
+          v.file === file
+            ? { ...v, blob_url: data.blob_url, duration: data.duration, uploading: false, progress: 100 }
+            : v
+        )
+      );
+    } catch (err) {
+      console.error("Upload error:", err);
+      // Mark as error
+      onVideosChange(prev =>
+        prev.map(v =>
+          v.file === file
+            ? { ...v, uploading: false, error: "Upload failed" }
+            : v
+        )
+      );
+    }
+  };
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -42,10 +91,9 @@ export function UploadZone({ type, files, onFilesChange }: UploadZoneProps) {
           setError(validation.error || "Invalid file");
           return;
         }
-        videoFiles.push(file);
+        // Upload immediately
+        uploadFile(file);
       }
-
-      onFilesChange([...files, ...videoFiles]);
     },
     [files, onFilesChange]
   );
@@ -62,53 +110,52 @@ export function UploadZone({ type, files, onFilesChange }: UploadZoneProps) {
           setError(validation.error || "Invalid file");
           return;
         }
-        videoFiles.push(file);
+        // Upload immediately
+        uploadFile(file);
       }
-
-      onFilesChange([...files, ...videoFiles]);
     },
     [files, onFilesChange]
   );
 
-  const removeFile = (index: number) => {
-    onFilesChange(files.filter((_, i) => i !== index));
+  const removeVideo = (index: number) => {
+    onVideosChange(videos.filter((_, i) => i !== index));
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">
+        <h3 className="font-semibold">
           {type === "hook" ? "Hooks" : "Bodies"}
         </h3>
-        <span className="text-sm text-foreground/60">{files.length} file(s)</span>
+        <span className="text-xs text-foreground/50">{videos.length} file(s)</span>
       </div>
 
-      <Card
+      <div
         className={cn(
-          "relative border-2 border-dashed transition-all",
-          isDragging && "border-foreground bg-foreground/5 scale-105 shadow-xl",
+          "relative rounded-lg border-2 border-dashed transition-all",
+          isDragging && "border-green-500 bg-green-500/10 scale-[1.02]",
           error && "border-red-500",
-          !isDragging && "border-foreground/20 hover:border-foreground/40"
+          !isDragging && !error && "border-foreground/20 hover:border-green-500/50 bg-foreground/5"
         )}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        <label className="flex cursor-pointer flex-col items-center justify-center p-12">
+        <label className="flex cursor-pointer flex-col items-center justify-center p-8">
           <div className={cn(
-            "w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-all",
-            isDragging ? "bg-foreground scale-110" : "bg-foreground/5"
+            "w-12 h-12 rounded-xl flex items-center justify-center mb-3 transition-all",
+            isDragging ? "bg-green-500" : "bg-foreground/10"
           )}>
             <Upload className={cn(
-              "h-8 w-8 transition-colors",
+              "h-6 w-6 transition-colors",
               isDragging ? "text-white" : "text-foreground/40"
             )} />
           </div>
-          <p className="mb-2 text-sm font-semibold">
-            Drag & drop or click to select
+          <p className="mb-1 text-sm font-medium">
+            Drop files or <span className="text-green-500">browse</span>
           </p>
-          <p className="text-xs text-foreground/60">
-            Only .mp4 files (max 100MB)
+          <p className="text-xs text-foreground/40">
+            .mp4 files up to 100MB
           </p>
           <input
             type="file"
@@ -118,34 +165,51 @@ export function UploadZone({ type, files, onFilesChange }: UploadZoneProps) {
             onChange={handleFileInput}
           />
         </label>
-      </Card>
+      </div>
 
       {error && (
-        <p className="text-sm text-red-500">{error}</p>
+        <p className="text-xs text-red-500">{error}</p>
       )}
 
-      {files.length > 0 && (
+      {videos.length > 0 && (
         <div className="space-y-2">
-          {files.map((file, index) => (
-            <Card key={index} className="flex items-center justify-between p-4 border hover:shadow-md transition-shadow animate-fade-in">
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="w-10 h-10 rounded-lg bg-foreground text-background flex items-center justify-center font-bold flex-shrink-0">
-                  {index + 1}
+          {videos.map((video, index) => (
+            <div key={index} className="p-3 rounded-lg bg-foreground/5 border border-foreground/10">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className={cn(
+                    "w-8 h-8 rounded-lg flex items-center justify-center text-sm font-semibold flex-shrink-0",
+                    video.blob_url ? "bg-green-500 text-white" : "bg-foreground/20 text-foreground/60"
+                  )}>
+                    {video.uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : 
+                     video.blob_url ? <CheckCircle2 className="w-4 h-4" /> : 
+                     index + 1}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="truncate text-sm">{video.file.name}</p>
+                    <p className="text-xs text-foreground/40">{formatBytes(video.file.size)}</p>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="truncate text-sm font-semibold">{file.name}</p>
-                  <p className="text-xs text-foreground/60">{formatBytes(file.size)}</p>
-                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => removeVideo(index)}
+                  className="ml-2 h-8 w-8 hover:bg-red-500/10 hover:text-red-500"
+                  disabled={video.uploading}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => removeFile(index)}
-                className="ml-2 hover:bg-red-500/10 hover:text-red-500"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </Card>
+              {video.uploading && (
+                <div className="space-y-1">
+                  <Progress value={50} className="h-1" />
+                  <p className="text-xs text-foreground/40 text-center">Uploading...</p>
+                </div>
+              )}
+              {video.error && (
+                <p className="text-xs text-red-500 mt-1">{video.error}</p>
+              )}
+            </div>
           ))}
         </div>
       )}

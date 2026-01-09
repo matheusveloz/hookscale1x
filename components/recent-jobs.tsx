@@ -110,7 +110,7 @@ export function RecentJobs() {
     <Card>
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2">
-          <Clock className="w-5 h-5" />
+          <Clock className="w-5 h-5 text-green-500" />
           Recent Creations
         </CardTitle>
       </CardHeader>
@@ -123,27 +123,26 @@ export function RecentJobs() {
           {jobs.map((job) => (
             <div
               key={job.id}
-              className="p-4 rounded-lg border bg-card hover:shadow-md transition-all cursor-pointer border-l-4 border-l-transparent hover:border-l-foreground"
+              className="p-4 rounded-lg border bg-foreground/5 hover:bg-foreground/10 transition-all cursor-pointer border-l-4 border-l-green-500/50 hover:border-l-green-500"
               onClick={() => handleViewJob(job.id)}
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-2 mb-2">
                     <h4 className="font-semibold text-sm">{job.name || `Job ${job.id.slice(0, 8)}`}</h4>
-                    <Badge variant="outline" className="text-xs">
+                    <Badge variant="outline" className="text-xs border-foreground/20">
                       {job.aspect_ratio || "16:9"}
                     </Badge>
                     <Badge
-                      variant={
+                      className={`text-xs ${
                         job.status === "completed"
-                          ? "success"
+                          ? "bg-green-500/20 text-green-500 border-green-500/30"
                           : job.status === "failed"
-                          ? "destructive"
+                          ? "bg-red-500/20 text-red-500 border-red-500/30"
                           : job.status === "processing"
-                          ? "default"
-                          : "secondary"
-                      }
-                      className="text-xs"
+                          ? "bg-yellow-500/20 text-yellow-500 border-yellow-500/30"
+                          : "bg-foreground/10 text-foreground/60 border-foreground/20"
+                      }`}
                     >
                       {job.status === "completed"
                         ? "Complete"
@@ -155,30 +154,13 @@ export function RecentJobs() {
                     </Badge>
                   </div>
 
-                  <div className="flex flex-col gap-1 text-xs text-foreground/60">
-                    <div className="flex items-center gap-2">
-                      <span>{job.total_combinations} videos</span>
-                      {job.status === "completed" && (
-                        <span>
-                          • {job.processed_count}/{job.total_combinations} processed
-                        </span>
-                      )}
-                      {job.status === "processing" && (
-                        <span>
-                          • {job.processed_count}/{job.total_combinations} processed
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      {new Date(job.created_at).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "2-digit",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </div>
+                  <div className="flex items-center gap-2 text-xs text-foreground/50">
+                    <span>{job.total_combinations} videos</span>
+                    {(job.status === "completed" || job.status === "processing") && (
+                      <span className="text-green-500">
+                        • {job.processed_count}/{job.total_combinations} processed
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -187,7 +169,7 @@ export function RecentJobs() {
                     variant="outline"
                     size="sm"
                     onClick={() => handleViewJob(job.id)}
-                    className="w-full text-xs"
+                    className="w-full text-xs border-foreground/20 hover:border-foreground/40"
                   >
                     <Eye className="w-3 h-3 mr-1" />
                     Open
@@ -197,7 +179,7 @@ export function RecentJobs() {
                     <Button
                       size="sm"
                       onClick={() => handleDownloadZip(job.id, job)}
-                      className="w-full text-xs"
+                      className="w-full text-xs bg-green-500 hover:bg-green-600 text-white"
                     >
                       <Download className="w-3 h-3 mr-1" />
                       {job.zip_url ? "ZIP ⚡" : "ZIP"}
