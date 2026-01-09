@@ -20,7 +20,7 @@ export function UploadZone({ type, videos, onVideosChange, compact = false }: Up
   const [error, setError] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const uploadFiles = async (files: File[]) => {
     setIsUploading(true);
@@ -299,17 +299,15 @@ export function UploadZone({ type, videos, onVideosChange, compact = false }: Up
                     </div>
                   </div>
 
-                  {/* Delete button */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
+                  {/* Delete button - always visible */}
+                  <button
                     onClick={() => removeVideo(index)}
                     disabled={video.uploading}
-                    className="h-7 w-7 p-0 hover:bg-red-500/10 hover:text-red-500 flex-shrink-0"
+                    className="h-7 w-7 flex items-center justify-center rounded hover:bg-red-500/10 hover:text-red-500 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 transition-colors"
                     title="Remove this file"
                   >
-                    <X className="w-3.5 h-3.5" />
-                  </Button>
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
               ))}
             </div>
