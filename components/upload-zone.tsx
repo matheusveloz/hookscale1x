@@ -86,7 +86,7 @@ export function UploadZone({ type, files, onFilesChange }: UploadZoneProps) {
       <Card
         className={cn(
           "relative border-2 border-dashed transition-all",
-          isDragging && "border-green-500 bg-green-500/5 scale-105 shadow-xl",
+          isDragging && "border-foreground bg-foreground/5 scale-105 shadow-xl",
           error && "border-red-500",
           !isDragging && "border-foreground/20 hover:border-foreground/40"
         )}
@@ -97,7 +97,7 @@ export function UploadZone({ type, files, onFilesChange }: UploadZoneProps) {
         <label className="flex cursor-pointer flex-col items-center justify-center p-12">
           <div className={cn(
             "w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-all",
-            isDragging ? "bg-green-500 scale-110" : "bg-foreground/5"
+            isDragging ? "bg-foreground scale-110" : "bg-foreground/5"
           )}>
             <Upload className={cn(
               "h-8 w-8 transition-colors",
@@ -129,7 +129,7 @@ export function UploadZone({ type, files, onFilesChange }: UploadZoneProps) {
           {files.map((file, index) => (
             <Card key={index} className="flex items-center justify-between p-4 border hover:shadow-md transition-shadow animate-fade-in">
               <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="w-10 h-10 rounded-lg bg-green-500 flex items-center justify-center text-white font-bold flex-shrink-0">
+                <div className="w-10 h-10 rounded-lg bg-foreground text-background flex items-center justify-center font-bold flex-shrink-0">
                   {index + 1}
                 </div>
                 <div className="flex-1 min-w-0">

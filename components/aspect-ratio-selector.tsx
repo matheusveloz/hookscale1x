@@ -33,9 +33,9 @@ export function AspectRatioSelector({ selected, onSelect }: AspectRatioSelectorP
           <Card
             key={ratio.value}
             className={cn(
-              "relative cursor-pointer p-5 transition-all hover:shadow-lg hover:scale-105",
+              "relative cursor-pointer p-5 transition-all hover:shadow-lg",
               selected === ratio.value
-                ? "border-2 border-green-500 bg-green-500/5 shadow-lg"
+                ? "border-2 border-foreground bg-foreground/5"
                 : "border border-foreground/10 hover:border-foreground/30"
             )}
             onClick={() => onSelect(ratio.value)}
@@ -47,7 +47,7 @@ export function AspectRatioSelector({ selected, onSelect }: AspectRatioSelectorP
                   className={cn(
                     "rounded-lg shadow-inner transition-all",
                     selected === ratio.value
-                      ? "bg-green-500"
+                      ? "bg-foreground"
                       : "bg-foreground/10",
                     ratio.value === "9:16" && "w-7 h-14",
                     ratio.value === "1:1" && "w-12 h-12",
@@ -59,10 +59,7 @@ export function AspectRatioSelector({ selected, onSelect }: AspectRatioSelectorP
 
               {/* Label */}
               <div className="text-center">
-                <p className={cn(
-                  "font-bold text-base mb-1",
-                  selected === ratio.value && "text-green-600 dark:text-green-400"
-                )}>
+                <p className="font-bold text-base mb-1">
                   {ratio.value}
                 </p>
                 <p className="text-xs font-medium text-foreground/70">{ratio.label}</p>
@@ -70,7 +67,7 @@ export function AspectRatioSelector({ selected, onSelect }: AspectRatioSelectorP
               </div>
 
               {selected === ratio.value && (
-                <CheckCircle2 className="w-5 h-5 text-green-500 absolute top-2 right-2" />
+                <CheckCircle2 className="w-5 h-5 absolute top-2 right-2" />
               )}
             </div>
           </Card>

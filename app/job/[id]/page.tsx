@@ -212,25 +212,25 @@ export default function JobPage() {
             )}
 
             {processingStatus === "completed" && (
-              <div className="rounded-lg bg-green-500/10 p-4 text-green-600 dark:text-green-400 mb-4 border border-green-500/20">
+              <div className="rounded-lg bg-foreground/5 p-4 mb-4 border border-foreground/10">
                 <p className="font-medium">✓ Processing Complete!</p>
-                <p className="text-sm mt-1">
+                <p className="text-sm mt-1 text-foreground/60">
                   All videos are ready for download.
                 </p>
               </div>
             )}
 
             {error && (
-              <div className="rounded-lg bg-red-500/10 p-4 text-red-500 mb-4 border border-red-500/20">
+              <div className="rounded-lg bg-foreground/5 p-4 mb-4 border border-foreground/20">
                 <p className="font-medium">Processing Error</p>
-                <p className="text-sm mt-1">{error}</p>
+                <p className="text-sm mt-1 text-foreground/60">{error}</p>
               </div>
             )}
 
             {processingStatus === "pending" && !isProcessing && (
               <Button 
                 onClick={handleStartProcessing} 
-                className="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white shadow-lg shadow-green-500/30"
+                className="w-full"
               >
                 Start Processing
               </Button>

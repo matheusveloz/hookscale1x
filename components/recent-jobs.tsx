@@ -110,7 +110,7 @@ export function RecentJobs() {
     <Card>
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2">
-          <Clock className="w-5 h-5 text-green-500" />
+          <Clock className="w-5 h-5" />
           Recent Creations
         </CardTitle>
       </CardHeader>
@@ -123,7 +123,7 @@ export function RecentJobs() {
           {jobs.map((job) => (
             <div
               key={job.id}
-              className="p-4 rounded-lg border bg-card hover:shadow-md transition-all cursor-pointer border-l-4 border-l-transparent hover:border-l-green-500"
+              className="p-4 rounded-lg border bg-card hover:shadow-md transition-all cursor-pointer border-l-4 border-l-transparent hover:border-l-foreground"
               onClick={() => handleViewJob(job.id)}
             >
               <div className="flex items-start justify-between gap-4">
@@ -159,7 +159,7 @@ export function RecentJobs() {
                     <div className="flex items-center gap-2">
                       <span>{job.total_combinations} videos</span>
                       {job.status === "completed" && (
-                        <span className="text-green-600 dark:text-green-400">
+                        <span>
                           • {job.processed_count}/{job.total_combinations} processed
                         </span>
                       )}
@@ -197,7 +197,7 @@ export function RecentJobs() {
                     <Button
                       size="sm"
                       onClick={() => handleDownloadZip(job.id, job)}
-                      className="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white text-xs shadow-md"
+                      className="w-full text-xs"
                     >
                       <Download className="w-3 h-3 mr-1" />
                       {job.zip_url ? "ZIP ⚡" : "ZIP"}

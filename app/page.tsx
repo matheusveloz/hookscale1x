@@ -94,34 +94,34 @@ export default function HomePage() {
                 <div
                   className={`flex items-center justify-center w-10 h-10 rounded-full font-semibold transition-all ${
                     step >= 1
-                      ? "bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-lg shadow-green-500/30"
+                      ? "bg-foreground text-background"
                       : "bg-foreground/10 text-foreground/40"
                   }`}
                 >
                   {step > 1 ? <CheckCircle2 className="w-5 h-5" /> : "1"}
                 </div>
                 <div className="text-left">
-                  <p className={`font-semibold text-sm ${step >= 1 ? "text-green-600 dark:text-green-400" : "text-foreground/60"}`}>
+                  <p className={`font-semibold text-sm ${step >= 1 ? "" : "text-foreground/60"}`}>
                     Choose Format
                   </p>
                   <p className="text-xs text-foreground/40">Select aspect ratio</p>
                 </div>
               </div>
 
-              <ArrowRight className={`w-5 h-5 ${step >= 2 ? "text-green-500" : "text-foreground/20"}`} />
+              <ArrowRight className={`w-5 h-5 ${step >= 2 ? "" : "text-foreground/20"}`} />
 
               <div className="flex items-center gap-3">
                 <div
                   className={`flex items-center justify-center w-10 h-10 rounded-full font-semibold transition-all ${
                     step >= 2
-                      ? "bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-lg shadow-green-500/30"
+                      ? "bg-foreground text-background"
                       : "bg-foreground/10 text-foreground/40"
                   }`}
                 >
                   2
                 </div>
                 <div className="text-left">
-                  <p className={`font-semibold text-sm ${step >= 2 ? "text-green-600 dark:text-green-400" : "text-foreground/60"}`}>
+                  <p className={`font-semibold text-sm ${step >= 2 ? "" : "text-foreground/60"}`}>
                     Upload Videos
                   </p>
                   <p className="text-xs text-foreground/40">Add hooks & bodies</p>
@@ -144,7 +144,7 @@ export default function HomePage() {
                     onSelect={setAspectRatio}
                   />
 
-                  <div className="rounded-lg bg-green-500/10 p-4 border border-green-500/20">
+                  <div className="rounded-lg bg-foreground/5 p-4 border border-foreground/10">
                     <p className="text-sm text-center">
                       <span className="font-semibold">Selected:</span> {aspectRatio}
                       {aspectRatio === "9:16" && " - Perfect for Stories & Reels"}
@@ -158,7 +158,6 @@ export default function HomePage() {
                     <Button 
                       onClick={() => setStep(2)} 
                       size="lg"
-                      className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white shadow-lg shadow-green-500/30"
                     >
                       Next: Upload Videos
                       <ArrowRight className="ml-2 w-5 h-5" />
@@ -197,7 +196,7 @@ export default function HomePage() {
                   </div>
 
                   {totalCombinations > 0 && (
-                    <div className="rounded-lg bg-green-500/10 p-4 border border-green-500/20">
+                    <div className="rounded-lg bg-foreground/5 p-4 border border-foreground/10">
                       <p className="text-center text-sm">
                         <span className="font-semibold">{totalCombinations}</span> combinations
                         will be generated ({hookFiles.length} hooks × {bodyFiles.length} bodies)
@@ -206,8 +205,8 @@ export default function HomePage() {
                   )}
 
                   {error && (
-                    <div className="rounded-lg bg-red-500/10 p-4 border border-red-500/20">
-                      <p className="text-sm text-red-500">{error}</p>
+                    <div className="rounded-lg bg-foreground/5 p-4 border border-foreground/20">
+                      <p className="text-sm">{error}</p>
                     </div>
                   )}
 
@@ -225,7 +224,6 @@ export default function HomePage() {
                       onClick={handleSubmit}
                       disabled={!canSubmit}
                       size="lg"
-                      className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white shadow-lg shadow-green-500/30"
                     >
                       {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       {isUploading ? "Uploading..." : "Generate Combinations"}
