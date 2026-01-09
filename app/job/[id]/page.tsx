@@ -46,11 +46,12 @@ export default function JobPage() {
         setDisplayedCombinations(data.combinations.slice(0, ITEMS_PER_PAGE));
         setProcessingStatus(data.job.status);
         
-        // Set real progress
-        if (data.job.status === 'completed') {
+        // Don't set progress from DB - let SSE handle it
+        // Only set if truly completed (and not actively processing)
+        if (data.job.status === 'completed' && !hasStartedProcessing.current) {
           setCurrentProgress(data.job.total_combinations);
-        } else if (data.job.status === 'processing') {
-          setCurrentProgress(data.job.processed_count || 0);
+        } else {
+          setCurrentProgress(0);
         }
       } catch (err) {
         console.error("Error fetching job:", err);
@@ -83,13 +84,17 @@ export default function JobPage() {
       eventSource.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
+          console.log('SSE event received:', data);
 
           if (data.status === "processing") {
             setCurrentProgress(data.progress || 0);
             setCurrentFile(data.currentFile);
             setProcessingStatus("processing");
-            // Update displayed combinations as they complete
-            fetchCombinations();
+            
+            // Update combinations periodically (every 5 videos)
+            if (data.progress % 5 === 0) {
+              fetchCombinations();
+            }
           } else if (data.status === "completed") {
             setProcessingStatus("completed");
             setCurrentProgress(data.total || 0);
