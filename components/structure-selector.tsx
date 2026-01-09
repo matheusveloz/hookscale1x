@@ -35,11 +35,10 @@ export function StructureSelector({ structure, onStructureChange }: StructureSel
   };
 
   const updateBlockName = (index: number, customName: string) => {
-    const blockType = structure[index].type;
-    // Update ALL blocks of the same type
+    // Update ONLY this specific block
     onStructureChange(
-      structure.map((block) =>
-        block.type === blockType ? { ...block, customName } : block
+      structure.map((block, i) =>
+        i === index ? { ...block, customName } : block
       )
     );
     setEditingIndex(null);

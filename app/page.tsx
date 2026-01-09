@@ -201,13 +201,14 @@ export default function HomePage() {
 
                    {/* Horizontal scroll container with custom scrollbar */}
                    <div 
-                     className="overflow-x-auto overflow-y-hidden pb-3"
+                     className="overflow-x-auto overflow-y-hidden pb-3 -mx-4 px-4"
                      style={{
                        scrollbarWidth: 'thin',
-                       scrollbarColor: '#10b981 transparent'
+                       scrollbarColor: '#10b981 transparent',
+                       maxWidth: '100%'
                      }}
                    >
-                     <div className="flex gap-4" style={{ minWidth: 'max-content' }}>
+                     <div className="flex gap-4 w-max">
                        {structure.map((block, index) => {
                          const videos = videosByBlock[block.id] || [];
                          const blockName = block.customName || defaultLabels[block.type];
@@ -215,7 +216,7 @@ export default function HomePage() {
                          return (
                            <div
                              key={block.id}
-                             className="flex-shrink-0 w-[400px] space-y-2"
+                             className="flex-shrink-0 w-[380px] space-y-2"
                            >
                              {/* Block header */}
                              <div className="flex items-center justify-between px-1">
