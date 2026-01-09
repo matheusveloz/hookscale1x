@@ -70,6 +70,17 @@ export default function JobPage() {
     }
   }, [job, processingStatus]);
 
+  // Auto-refresh while processing
+  useEffect(() => {
+    if (processingStatus === "processing") {
+      const interval = setInterval(() => {
+        fetchCombinations();
+      }, 3000); // Refresh every 3 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [processingStatus]);
+
   const handleStartProcessing = async () => {
     if (isProcessing) return;
 
@@ -90,11 +101,7 @@ export default function JobPage() {
             setCurrentProgress(data.progress || 0);
             setCurrentFile(data.currentFile);
             setProcessingStatus("processing");
-            
-            // Update combinations periodically (every 5 videos)
-            if (data.progress % 5 === 0) {
-              fetchCombinations();
-            }
+            // Grid updates via interval, not here
           } else if (data.status === "completed") {
             setProcessingStatus("completed");
             setCurrentProgress(data.total || 0);
@@ -155,8 +162,31 @@ export default function JobPage() {
     }
   }, [combinations, displayedCombinations.length, page]);
 
-  const handleDownload = (id: string, filename: string) => {
-    window.open(`/api/download?id=${id}`, "_blank");
+  const handleDownload = async (id: string, filename: string) => {
+    try {
+      // Fetch the video
+      const response = await fetch(`/api/download?id=${id}`);
+      if (!response.ok) throw new Error('Download failed');
+
+      // Get the blob
+      const blob = await response.blob();
+
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error('Download error:', err);
+      // Fallback to opening in new tab
+      window.open(`/api/download?id=${id}`, '_blank');
+    }
   };
 
   const handleDownloadAll = () => {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCombination } from "@/lib/db";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 export async function GET(request: NextRequest) {
   try {
@@ -31,8 +31,21 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Redirect to blob URL with download header
-    return NextResponse.redirect(combination.blob_url);
+    // Fetch video from blob and return with download headers
+    const videoResponse = await fetch(combination.blob_url);
+    if (!videoResponse.ok) {
+      throw new Error('Failed to fetch video from storage');
+    }
+
+    const videoBlob = await videoResponse.blob();
+
+    return new Response(videoBlob, {
+      headers: {
+        'Content-Type': 'video/mp4',
+        'Content-Disposition': `attachment; filename="${combination.output_filename}"`,
+        'Cache-Control': 'public, max-age=31536000',
+      },
+    });
   } catch (error) {
     console.error("Error in download API:", error);
     return NextResponse.json(
