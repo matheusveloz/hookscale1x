@@ -1,0 +1,88 @@
+"use client";
+
+import { Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import type { Combination } from "@/types";
+
+interface VideoListProps {
+  combinations: Combination[];
+  onDownload: (id: string, filename: string) => void;
+  onDownloadAll?: () => void;
+}
+
+export function VideoList({ combinations, onDownload, onDownloadAll }: VideoListProps) {
+  const completedCombinations = combinations.filter((c) => c.status === "completed");
+  const failedCombinations = combinations.filter((c) => c.status === "failed");
+
+  if (combinations.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Vídeos Gerados</h3>
+        {completedCombinations.length > 0 && onDownloadAll && (
+          <Button onClick={onDownloadAll}>
+            <Download className="mr-2 h-4 w-4" />
+            Baixar Todos (ZIP)
+          </Button>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        {combinations.map((combination) => (
+          <Card
+            key={combination.id}
+            className="flex items-center justify-between p-4"
+          >
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="truncate font-medium">{combination.output_filename}</p>
+                <Badge
+                  variant={
+                    combination.status === "completed"
+                      ? "success"
+                      : combination.status === "failed"
+                      ? "destructive"
+                      : "secondary"
+                  }
+                >
+                  {combination.status === "completed"
+                    ? "Completo"
+                    : combination.status === "failed"
+                    ? "Falhou"
+                    : combination.status === "processing"
+                    ? "Processando"
+                    : "Pendente"}
+                </Badge>
+              </div>
+              {combination.error && (
+                <p className="text-xs text-red-500 mt-1">{combination.error}</p>
+              )}
+            </div>
+            {combination.status === "completed" && combination.blob_url && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onDownload(combination.id, combination.output_filename)}
+                className="ml-4"
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Download
+              </Button>
+            )}
+          </Card>
+        ))}
+      </div>
+
+      {failedCombinations.length > 0 && (
+        <p className="text-sm text-red-500">
+          {failedCombinations.length} vídeo(s) falharam durante o processamento
+        </p>
+      )}
+    </div>
+  );
+}

@@ -1,0 +1,19 @@
+{
+  "functions": {
+    "app/api/upload/route.ts": {
+      "maxDuration": 300
+    },
+    "app/api/process/route.ts": {
+      "maxDuration": 300
+    },
+    "app/api/download-zip/route.ts": {
+      "maxDuration": 300
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/"
+    }
+  ]
+}

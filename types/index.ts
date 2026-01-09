@@ -1,0 +1,53 @@
+export type VideoType = 'hook' | 'body';
+
+export type JobStatus = 'pending' | 'processing' | 'completed' | 'failed';
+
+export type CombinationStatus = 'pending' | 'processing' | 'completed' | 'failed';
+
+export interface Job {
+  id: string;
+  name: string | null;
+  status: JobStatus;
+  total_combinations: number;
+  processed_count: number;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface Video {
+  id: string;
+  job_id: string;
+  type: VideoType;
+  filename: string;
+  blob_url: string;
+  duration: number;
+  file_size: number;
+  uploaded_at: Date;
+}
+
+export interface Combination {
+  id: string;
+  job_id: string;
+  hook_id: string;
+  body_id: string;
+  output_filename: string;
+  blob_url: string | null;
+  status: CombinationStatus;
+  error: string | null;
+  created_at: Date;
+}
+
+export interface ProcessProgress {
+  progress: number;
+  total: number;
+  status: JobStatus;
+  currentFile?: string;
+  error?: string;
+}
+
+export interface UploadedFile {
+  file: File;
+  type: VideoType;
+  preview?: string;
+  duration?: number;
+}
