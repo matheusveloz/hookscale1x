@@ -126,18 +126,36 @@ async function processSingleCombination(
   // Get video IDs from video_ids field (new) or fallback to hook_id/body_id (old)
   let videoIds: string[];
   if (combination.video_ids) {
-    videoIds = JSON.parse(combination.video_ids);
+    try {
+      videoIds = JSON.parse(combination.video_ids);
+      console.log(`Combination ${combination.id} has ${videoIds.length} video IDs:`, videoIds);
+    } catch (e) {
+      console.error('Error parsing video_ids:', e);
+      videoIds = [combination.hook_id, combination.body_id];
+    }
   } else {
     videoIds = [combination.hook_id, combination.body_id];
   }
 
   // Find all videos in order
   const videos = videoIds
-    .map(id => allVideos.find(v => v.id === id))
+    .map(id => {
+      const found = allVideos.find(v => v.id === id);
+      if (!found) {
+        console.error(`Video ${id} not found in allVideos (${allVideos.length} total)`);
+      }
+      return found;
+    })
     .filter((v): v is Video => v !== undefined);
 
-  if (videos.length < 2) {
-    throw new Error('Not enough videos found for combination');
+  console.log(`Found ${videos.length} videos out of ${videoIds.length} IDs for combination ${combination.output_filename}`);
+
+  if (videos.length !== videoIds.length) {
+    throw new Error(`Only found ${videos.length} videos out of ${videoIds.length} required`);
+  }
+
+  if (videos.length < 1) {
+    throw new Error('No videos found for combination');
   }
 
   callbacks.onProgress(currentIndex, total, combination.output_filename);
