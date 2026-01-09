@@ -38,12 +38,14 @@ export default function HomePage() {
     return acc === 0 ? (videos.length || 1) : acc * (videos.length || 1);
   }, 0);
 
-  const hasAllRequiredVideos = structure.every(block => {
+  const hasStructure = structure.length > 0;
+  
+  const hasAllRequiredVideos = hasStructure && structure.every(block => {
     const videos = videosByBlock[block.id] || [];
     return videos.length > 0;
   });
 
-  const allUploaded = structure.every(block => {
+  const allUploaded = hasStructure && structure.every(block => {
     const videos = videosByBlock[block.id] || [];
     return videos.length > 0 && videos.every(v => v.blob_url);
   });
@@ -52,13 +54,13 @@ export default function HomePage() {
     videos.some(v => v.uploading)
   );
 
-  const canSubmit = hasAllRequiredVideos && allUploaded && !isCreatingJob;
+  const canSubmit = hasStructure && hasAllRequiredVideos && allUploaded && !isCreatingJob;
   
   const getButtonText = () => {
     if (isCreatingJob) return "Creating...";
     if (isAnyUploading) return "Uploading...";
-    if (!hasAllRequiredVideos) return "Generate";
-    if (allUploaded) return "Generate";
+    if (!hasStructure) return "Add blocks first";
+    if (!hasAllRequiredVideos) return "Add videos";
     return "Generate";
   };
 
