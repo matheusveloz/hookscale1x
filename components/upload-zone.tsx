@@ -144,6 +144,10 @@ export function UploadZone({ type, videos, onVideosChange, compact = false }: Up
     onVideosChange([]);
   };
 
+  const removeVideo = (index: number) => {
+    onVideosChange(videos.filter((_, i) => i !== index));
+  };
+
   const uploadedCount = videos.filter(v => v.blob_url).length;
   const hasErrors = videos.some(v => v.error);
 
@@ -206,40 +210,108 @@ export function UploadZone({ type, videos, onVideosChange, compact = false }: Up
         <p className="text-xs text-red-500">{error}</p>
       )}
 
-      {/* Summary - show only when has files and not uploading */}
-      {videos.length > 0 && !isUploading && (
-        <div className="flex items-center justify-between p-2 rounded-lg bg-foreground/5 border border-foreground/10">
-          <div className="flex items-center gap-2">
-            <div className={cn(
-              "w-6 h-6 rounded flex items-center justify-center",
-              uploadedCount === videos.length ? "bg-green-500 text-white" : "bg-foreground/20"
-            )}>
-              {uploadedCount === videos.length ? (
-                <CheckCircle2 className="w-3.5 h-3.5" />
+      {/* Files List */}
+      {videos.length > 0 && (
+        <div className="space-y-2">
+          {/* Header with toggle */}
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="w-full flex items-center justify-between p-2 rounded-lg bg-foreground/5 border border-foreground/10 hover:bg-foreground/10 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <div className={cn(
+                "w-6 h-6 rounded flex items-center justify-center",
+                uploadedCount === videos.length ? "bg-green-500 text-white" : "bg-foreground/20"
+              )}>
+                {uploadedCount === videos.length ? (
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                ) : (
+                  <FileVideo className="w-3.5 h-3.5 text-foreground/50" />
+                )}
+              </div>
+              <span className="text-xs">
+                <span className="font-medium">{videos.length}</span>
+                <span className="text-foreground/50"> file{videos.length !== 1 ? 's' : ''}</span>
+                {uploadedCount === videos.length && (
+                  <span className="text-green-500 ml-1">✓ ready</span>
+                )}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  clearAll();
+                }}
+                className="h-6 px-2 text-xs text-foreground/40 hover:text-red-500"
+              >
+                Clear All
+              </Button>
+              {isExpanded ? (
+                <ChevronUp className="w-4 h-4 text-foreground/40" />
               ) : (
-                <FileVideo className="w-3.5 h-3.5 text-foreground/50" />
+                <ChevronDown className="w-4 h-4 text-foreground/40" />
               )}
             </div>
-            <span className="text-xs">
-              <span className="font-medium">{videos.length}</span>
-              <span className="text-foreground/50"> file{videos.length !== 1 ? 's' : ''}</span>
-              {uploadedCount === videos.length && (
-                <span className="text-green-500 ml-1">ready</span>
-              )}
-              {hasErrors && (
-                <span className="text-red-500 ml-1">error</span>
-              )}
-            </span>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={clearAll}
-            className="h-6 px-2 text-xs text-foreground/40 hover:text-red-500"
-          >
-            <X className="w-3 h-3 mr-1" />
-            Clear
-          </Button>
+          </button>
+
+          {/* Expanded list */}
+          {isExpanded && (
+            <div className="space-y-1.5">
+              {videos.map((video, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 p-2 rounded-lg bg-background border border-foreground/10 hover:border-green-500/30 transition-all"
+                >
+                  {/* Status icon */}
+                  <div className={cn(
+                    "w-7 h-7 rounded flex items-center justify-center flex-shrink-0",
+                    video.blob_url ? "bg-green-500 text-white" :
+                    video.uploading ? "bg-foreground/10" :
+                    video.error ? "bg-red-500/20" : "bg-foreground/10"
+                  )}>
+                    {video.uploading ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-foreground/50" />
+                    ) : video.blob_url ? (
+                      <CheckCircle2 className="w-4 h-4" />
+                    ) : video.error ? (
+                      <X className="w-4 h-4 text-red-500" />
+                    ) : (
+                      <span className="text-xs font-medium">{index + 1}</span>
+                    )}
+                  </div>
+
+                  {/* File info */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium truncate">{video.file.name}</p>
+                    <div className="flex items-center gap-2 text-xs text-foreground/40">
+                      <span>{formatBytes(video.file.size)}</span>
+                      {video.uploading && video.progress && (
+                        <span className="text-green-500">• {video.progress}%</span>
+                      )}
+                      {video.error && (
+                        <span className="text-red-500">• {video.error}</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Delete button */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeVideo(index)}
+                    disabled={video.uploading}
+                    className="h-7 w-7 p-0 hover:bg-red-500/10 hover:text-red-500 flex-shrink-0"
+                    title="Remove this file"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
