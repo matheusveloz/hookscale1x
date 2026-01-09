@@ -73,9 +73,9 @@ export function VideoGrid({ combinations }: VideoGridProps) {
 
               {combination.status === "completed" && combination.blob_url && (
                 <a
-                  href={combination.blob_url}
-                  download={combination.output_filename}
-                  className="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-4 py-2 w-full bg-green-500 hover:bg-green-600 text-white transition-colors"
+                  href={`/api/download-video?id=${combination.id}`}
+                  className="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-4 py-2 w-full bg-green-500 hover:bg-green-600 text-white transition-colors cursor-pointer"
+                  download
                 >
                   <Download className="mr-2 h-4 w-4" />
                   Download
