@@ -52,6 +52,7 @@ export default function HomePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           aspectRatio,
+          structure,
           hooks: hookVideos.map(v => ({
             filename: v.file.name,
             blob_url: v.blob_url,
@@ -59,6 +60,12 @@ export default function HomePage() {
             file_size: v.file.size,
           })),
           bodies: bodyVideos.map(v => ({
+            filename: v.file.name,
+            blob_url: v.blob_url,
+            duration: v.duration || 0,
+            file_size: v.file.size,
+          })),
+          ctas: ctaVideos.map(v => ({
             filename: v.file.name,
             blob_url: v.blob_url,
             duration: v.duration || 0,

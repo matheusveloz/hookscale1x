@@ -46,8 +46,18 @@ export function StructureSelector({ structure, onStructureChange }: StructureSel
     }
   };
 
+  // Count how many of each type are already in structure
+  const countByType = (type: 'hook' | 'body' | 'cta') => {
+    return structure.filter(t => t === type).length;
+  };
+
+  // Can add up to 3 of each type (1 + 2 extras)
+  const canAddMore = (type: 'hook' | 'body' | 'cta') => {
+    return countByType(type) < 3;
+  };
+
   const availableBlocks = ['hook', 'body', 'cta'].filter(
-    type => !structure.includes(type as any) || type === 'cta'
+    type => canAddMore(type as any)
   ) as ('hook' | 'body' | 'cta')[];
 
   return (
@@ -97,25 +107,45 @@ export function StructureSelector({ structure, onStructureChange }: StructureSel
         )}
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <span className="text-xs text-foreground/50">Add block:</span>
-        {availableBlocks.map((type) => (
-          <Button
-            key={type}
-            onClick={() => addBlock(type)}
-            size="sm"
-            variant="outline"
-            className="text-xs"
-          >
-            <Plus className="w-3 h-3 mr-1" />
-            {blockLabels[type]}
-          </Button>
-        ))}
+        {(['hook', 'body', 'cta'] as const).map((type) => {
+          const count = countByType(type);
+          const canAdd = count < 3;
+          
+          return (
+            <Button
+              key={type}
+              onClick={() => addBlock(type)}
+              size="sm"
+              variant="outline"
+              className="text-xs"
+              disabled={!canAdd}
+            >
+              <Plus className="w-3 h-3 mr-1" />
+              {blockLabels[type]}
+              {count > 0 && (
+                <span className="ml-1 text-xs text-foreground/40">({count}/3)</span>
+              )}
+            </Button>
+          );
+        })}
       </div>
 
       <div className="text-xs text-foreground/40 bg-foreground/5 p-2 rounded">
-        <strong>Preview:</strong> {structure.map(t => blockLabels[t]).join(' → ') || 'No structure defined'}
+        <div className="flex items-center justify-between">
+          <span>
+            <strong>Preview:</strong> {structure.map(t => blockLabels[t]).join(' → ') || 'No structure defined'}
+          </span>
+          <span className="text-foreground/30">
+            {structure.length} block{structure.length !== 1 ? 's' : ''}
+          </span>
+        </div>
       </div>
+      
+      <p className="text-xs text-foreground/30 text-center">
+        You can add up to 3 of each type
+      </p>
     </div>
   );
 }
