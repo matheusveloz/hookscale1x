@@ -33,7 +33,7 @@ export function AspectRatioSelector({ selected, onSelect }: AspectRatioSelectorP
           <Card
             key={ratio.value}
             className={cn(
-              "cursor-pointer p-5 transition-all hover:shadow-lg hover:scale-105",
+              "relative cursor-pointer p-5 transition-all hover:shadow-lg hover:scale-105",
               selected === ratio.value
                 ? "border-2 border-green-500 bg-green-500/5 shadow-lg"
                 : "border border-foreground/10 hover:border-foreground/30"

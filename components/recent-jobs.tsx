@@ -112,19 +112,20 @@ export function RecentJobs() {
         <div 
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="max-h-[600px] overflow-y-auto px-6 pb-6 space-y-3"
+          className="max-h-[600px] overflow-y-auto px-6 space-y-3"
+          style={{ paddingTop: '1rem', paddingBottom: '1rem' }}
         >
           {jobs.map((job) => (
             <Card
               key={job.id}
-              className="p-4 hover:shadow-md transition-all cursor-pointer border-l-4 border-l-transparent hover:border-l-green-500 animate-fade-in"
+              className="p-4 hover:shadow-md transition-all cursor-pointer border-l-4 border-l-transparent hover:border-l-green-500"
               onClick={() => handleViewJob(job.id)}
             >
-              <div className="flex items-center justify-between gap-4">
+              <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h4 className="font-semibold truncate">{job.name || `Job ${job.id.slice(0, 8)}`}</h4>
-                    <Badge variant="outline" className="text-xs font-bold">
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <h4 className="font-semibold text-sm">{job.name || `Job ${job.id.slice(0, 8)}`}</h4>
+                    <Badge variant="outline" className="text-xs">
                       {job.aspect_ratio || "16:9"}
                     </Badge>
                     <Badge
@@ -149,39 +150,41 @@ export function RecentJobs() {
                     </Badge>
                   </div>
 
-                  <div className="flex items-center gap-4 text-xs text-foreground/60">
-                    <span>{job.total_combinations} videos</span>
-                    {job.status === "completed" && (
-                      <span className="text-green-600 dark:text-green-400">
-                        ✓ {job.processed_count}/{job.total_combinations} processed
-                      </span>
-                    )}
-                    {job.status === "processing" && (
-                      <span>
-                        {job.processed_count}/{job.total_combinations} processed
-                      </span>
-                    )}
-                    <span className="flex items-center gap-1">
+                  <div className="flex flex-col gap-1 text-xs text-foreground/60">
+                    <div className="flex items-center gap-2">
+                      <span>{job.total_combinations} videos</span>
+                      {job.status === "completed" && (
+                        <span className="text-green-600 dark:text-green-400">
+                          • {job.processed_count}/{job.total_combinations} processed
+                        </span>
+                      )}
+                      {job.status === "processing" && (
+                        <span>
+                          • {job.processed_count}/{job.total_combinations} processed
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1">
                       <Clock className="w-3 h-3" />
-                      {new Date(job.created_at).toLocaleDateString("pt-BR", {
+                      {new Date(job.created_at).toLocaleDateString("en-US", {
+                        month: "short",
                         day: "2-digit",
-                        month: "2-digit",
                         year: "numeric",
                         hour: "2-digit",
                         minute: "2-digit",
                       })}
-                    </span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
+                <div className="flex flex-col gap-2 min-w-[90px]" onClick={(e) => e.stopPropagation()}>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handleViewJob(job.id)}
-                    className="w-full"
+                    className="w-full text-xs"
                   >
-                    <Eye className="w-4 h-4 mr-2" />
+                    <Eye className="w-3 h-3 mr-1" />
                     Open
                   </Button>
 
@@ -189,9 +192,9 @@ export function RecentJobs() {
                     <Button
                       size="sm"
                       onClick={() => handleDownloadZip(job.id)}
-                      className="w-full bg-green-500 hover:bg-green-600 text-white"
+                      className="w-full bg-green-500 hover:bg-green-600 text-white text-xs"
                     >
-                      <Download className="w-4 h-4 mr-2" />
+                      <Download className="w-3 h-3 mr-1" />
                       ZIP
                     </Button>
                   )}
