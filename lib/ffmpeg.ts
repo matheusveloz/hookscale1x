@@ -147,39 +147,29 @@ export async function concatenateMultipleVideos(
       command.input(inputPath);
     });
 
-    // Build filter for N videos with audio handling
-    const scaleFilters: string[] = [];
-    const concatInputs: string[] = [];
-
+    // Simplified approach: concat videos only, audio if available
+    const videoFilters: string[] = [];
+    
     inputPaths.forEach((_, index) => {
-      // Video scaling
-      scaleFilters.push(
+      // Scale and pad each video
+      videoFilters.push(
         `[${index}:v]scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=30[v${index}]`
       );
-      
-      // Audio handling - add silent audio if not present
-      scaleFilters.push(
-        `[${index}:a]anull[a${index}]`
-      );
-      
-      concatInputs.push(`[v${index}][a${index}]`);
     });
 
-    // Add concat filter
-    const concatFilter = `${concatInputs.join('')}concat=n=${inputPaths.length}:v=1:a=1[outv][outa]`;
+    // Concat just videos
+    const videoInputs = inputPaths.map((_, i) => `[v${i}]`).join('');
+    const concatFilter = `${videoInputs}concat=n=${inputPaths.length}:v=1:a=0[outv]`;
 
     command
-      .complexFilter([...scaleFilters, concatFilter])
-      .outputOptions(['-shortest']) // Handle different audio lengths
+      .complexFilter([...videoFilters, concatFilter])
       .outputOptions([
         '-map', '[outv]',
-        '-map', '[outa]',
         '-c:v', 'libx264',
         '-preset', 'fast',
         '-crf', '23',
-        '-c:a', 'aac',
-        '-b:a', '128k',
-        '-movflags', '+faststart'
+        '-movflags', '+faststart',
+        '-an' // No audio (simplest approach)
       ])
       .output(outputPath)
       .on('start', (commandLine) => {
