@@ -215,9 +215,8 @@ export function UploadZone({ type, videos, onVideosChange, compact = false }: Up
       {videos.length > 0 && (
         <div className="space-y-2">
           {/* Header with toggle */}
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="w-full flex items-center justify-between p-2 rounded-lg bg-foreground/5 border border-foreground/10 hover:bg-foreground/10 transition-colors"
+          <div
+            className="w-full flex items-center justify-between p-2 rounded-lg bg-foreground/5 border border-foreground/10"
           >
             <div className="flex items-center gap-2">
               <div className={cn(
@@ -242,21 +241,23 @@ export function UploadZone({ type, videos, onVideosChange, compact = false }: Up
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  clearAll();
-                }}
+                onClick={clearAll}
                 className="h-6 px-2 text-xs text-foreground/40 hover:text-red-500"
               >
                 Clear All
               </Button>
-              {isExpanded ? (
-                <ChevronUp className="w-4 h-4 text-foreground/40" />
-              ) : (
-                <ChevronDown className="w-4 h-4 text-foreground/40" />
-              )}
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="p-1 hover:bg-foreground/10 rounded transition-colors"
+              >
+                {isExpanded ? (
+                  <ChevronUp className="w-4 h-4 text-foreground/40" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-foreground/40" />
+                )}
+              </button>
             </div>
-          </button>
+          </div>
 
           {/* Expanded list */}
           {isExpanded && (
