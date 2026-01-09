@@ -137,8 +137,23 @@ export async function concatenateMultipleVideos(
     throw new Error('At least 1 video is required');
   }
 
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     console.log(`Concatenating ${inputPaths.length} videos -> ${outputPath} (${width}x${height})`);
+
+    // First, check which videos have audio
+    const hasAudio: boolean[] = [];
+    for (const inputPath of inputPaths) {
+      try {
+        const metadata = await getVideoMetadata(inputPath);
+        const audioStream = metadata ? true : false;
+        hasAudio.push(audioStream);
+      } catch {
+        hasAudio.push(false); // Assume no audio if can't detect
+      }
+    }
+
+    const anyHasAudio = hasAudio.some(h => h);
+    console.log(`Audio detection: ${hasAudio.map((h, i) => `#${i+1}:${h ? 'yes' : 'no'}`).join(', ')}`);
 
     const command = ffmpeg();
 
@@ -147,30 +162,41 @@ export async function concatenateMultipleVideos(
       command.input(inputPath);
     });
 
-    // Simplified approach: concat videos only, audio if available
+    // Build filters
     const videoFilters: string[] = [];
+    const concatInputs: string[] = [];
     
     inputPaths.forEach((_, index) => {
-      // Scale and pad each video
+      // Scale video
       videoFilters.push(
         `[${index}:v]scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=30[v${index}]`
       );
+      
+      if (anyHasAudio) {
+        // Add silent audio for videos without audio
+        if (hasAudio[index]) {
+          videoFilters.push(`[${index}:a]anull[a${index}]`);
+        } else {
+          videoFilters.push(`anullsrc=r=44100:cl=stereo[a${index}]`);
+        }
+        concatInputs.push(`[v${index}][a${index}]`);
+      } else {
+        concatInputs.push(`[v${index}]`);
+      }
     });
 
-    // Concat just videos
-    const videoInputs = inputPaths.map((_, i) => `[v${i}]`).join('');
-    const concatFilter = `${videoInputs}concat=n=${inputPaths.length}:v=1:a=0[outv]`;
+    // Concat filter
+    const concatFilter = anyHasAudio
+      ? `${concatInputs.join('')}concat=n=${inputPaths.length}:v=1:a=1[outv][outa]`
+      : `${concatInputs.join('')}concat=n=${inputPaths.length}:v=1:a=0[outv]`;
+
+    const outputOpts = anyHasAudio
+      ? ['-map', '[outv]', '-map', '[outa]', '-c:v', 'libx264', '-preset', 'fast', '-crf', '23', '-c:a', 'aac', '-b:a', '128k']
+      : ['-map', '[outv]', '-c:v', 'libx264', '-preset', 'fast', '-crf', '23'];
 
     command
       .complexFilter([...videoFilters, concatFilter])
-      .outputOptions([
-        '-map', '[outv]',
-        '-c:v', 'libx264',
-        '-preset', 'fast',
-        '-crf', '23',
-        '-movflags', '+faststart',
-        '-an' // No audio (simplest approach)
-      ])
+      .outputOptions([...outputOpts, '-movflags', '+faststart'])
       .output(outputPath)
       .on('start', (commandLine) => {
         console.log('FFmpeg command:', commandLine);
