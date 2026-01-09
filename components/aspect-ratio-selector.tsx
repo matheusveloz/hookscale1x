@@ -21,9 +21,9 @@ export function AspectRatioSelector({ selected, onSelect }: AspectRatioSelectorP
   return (
     <div className="space-y-3">
       <div>
-        <h3 className="text-lg font-semibold mb-1">Formato do Vídeo</h3>
+        <h3 className="text-lg font-semibold mb-1">Video Format</h3>
         <p className="text-sm text-foreground/60">
-          Escolha o aspect ratio para os vídeos finais
+          Choose the aspect ratio for your final videos
         </p>
       </div>
 

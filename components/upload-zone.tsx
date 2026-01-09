@@ -80,7 +80,7 @@ export function UploadZone({ type, files, onFilesChange }: UploadZoneProps) {
         <h3 className="text-lg font-semibold">
           {type === "hook" ? "Hooks" : "Bodies"}
         </h3>
-        <span className="text-sm text-foreground/60">{files.length} arquivo(s)</span>
+        <span className="text-sm text-foreground/60">{files.length} file(s)</span>
       </div>
 
       <Card
@@ -96,10 +96,10 @@ export function UploadZone({ type, files, onFilesChange }: UploadZoneProps) {
         <label className="flex cursor-pointer flex-col items-center justify-center p-12">
           <Upload className="mb-4 h-12 w-12 text-foreground/40" />
           <p className="mb-2 text-sm font-medium">
-            Arraste e solte ou clique para selecionar
+            Drag & drop or click to select
           </p>
           <p className="text-xs text-foreground/60">
-            Apenas arquivos .mp4 (máx. 100MB)
+            Only .mp4 files (max 100MB)
           </p>
           <input
             type="file"

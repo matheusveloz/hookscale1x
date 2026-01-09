@@ -75,141 +75,150 @@ export default function HomePage() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-6xl">
-        {/* Progress Steps */}
-        <div className="flex items-center justify-center mb-8 gap-4">
-          <div className="flex items-center gap-2">
-            <div
-              className={`flex items-center justify-center w-8 h-8 rounded-full ${
-                step >= 1 ? "bg-foreground text-background" : "bg-foreground/10"
-              }`}
-            >
-              {step > 1 ? <CheckCircle2 className="w-5 h-5" /> : "1"}
+      <main className="container mx-auto px-4 py-8 max-w-7xl">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content - Left Side */}
+          <div className="lg:col-span-2">
+            {/* Progress Steps */}
+            <div className="flex items-center justify-center mb-8 gap-4">
+              <div className="flex items-center gap-2">
+                <div
+                  className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                    step >= 1 ? "bg-foreground text-background" : "bg-foreground/10"
+                  }`}
+                >
+                  {step > 1 ? <CheckCircle2 className="w-5 h-5" /> : "1"}
+                </div>
+                <span className={step >= 1 ? "font-semibold" : "text-foreground/60"}>
+                  Choose Format
+                </span>
+              </div>
+
+              <ArrowRight className="w-5 h-5 text-foreground/40" />
+
+              <div className="flex items-center gap-2">
+                <div
+                  className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                    step >= 2 ? "bg-foreground text-background" : "bg-foreground/10"
+                  }`}
+                >
+                  2
+                </div>
+                <span className={step >= 2 ? "font-semibold" : "text-foreground/60"}>
+                  Upload Videos
+                </span>
+              </div>
             </div>
-            <span className={step >= 1 ? "font-semibold" : "text-foreground/60"}>
-              Escolher Formato
-            </span>
+
+            {/* Step 1: Aspect Ratio Selection */}
+            {step === 1 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Step 1: Choose Video Format</CardTitle>
+                  <CardDescription>
+                    Select the aspect ratio for your final videos
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <AspectRatioSelector
+                    selected={aspectRatio}
+                    onSelect={setAspectRatio}
+                  />
+
+                  <div className="mt-6 rounded-lg bg-foreground/5 p-4">
+                    <p className="text-sm text-center">
+                      <span className="font-semibold">Selected:</span> {aspectRatio}
+                      {aspectRatio === "9:16" && " - Perfect for Stories & Reels"}
+                      {aspectRatio === "1:1" && " - Perfect for Instagram Feed"}
+                      {aspectRatio === "3:4" && " - Perfect for Portrait"}
+                      {aspectRatio === "16:9" && " - Perfect for YouTube & Landscape"}
+                    </p>
+                  </div>
+
+                  <div className="mt-6 flex justify-end">
+                    <Button onClick={() => setStep(2)} size="lg">
+                      Next: Upload Videos
+                      <ArrowRight className="ml-2 w-5 h-5" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Step 2: Upload */}
+            {step === 2 && (
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Step 2: Upload Videos</CardTitle>
+                      <CardDescription>
+                        Upload your hook and body videos
+                      </CardDescription>
+                    </div>
+                    <Badge variant="secondary">{aspectRatio}</Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <UploadZone
+                      type="hook"
+                      files={hookFiles}
+                      onFilesChange={setHookFiles}
+                    />
+                    <UploadZone
+                      type="body"
+                      files={bodyFiles}
+                      onFilesChange={setBodyFiles}
+                    />
+                  </div>
+
+                  {totalCombinations > 0 && (
+                    <div className="mt-6 rounded-lg bg-foreground/5 p-4">
+                      <p className="text-center text-sm">
+                        <span className="font-semibold">{totalCombinations}</span> combinations
+                        will be generated ({hookFiles.length} hooks × {bodyFiles.length} bodies)
+                      </p>
+                    </div>
+                  )}
+
+                  {error && (
+                    <div className="mt-4 rounded-lg bg-red-500/10 p-4 text-red-500">
+                      <p className="text-sm">{error}</p>
+                    </div>
+                  )}
+
+                  <div className="mt-6 flex justify-between">
+                    <Button
+                      onClick={() => setStep(1)}
+                      variant="outline"
+                      size="lg"
+                    >
+                      <ArrowLeft className="mr-2 w-5 h-5" />
+                      Back
+                    </Button>
+
+                    <Button
+                      onClick={handleSubmit}
+                      disabled={!canSubmit}
+                      size="lg"
+                    >
+                      {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      {isUploading ? "Uploading..." : "Generate Combinations"}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
-          <ArrowRight className="w-5 h-5 text-foreground/40" />
-
-          <div className="flex items-center gap-2">
-            <div
-              className={`flex items-center justify-center w-8 h-8 rounded-full ${
-                step >= 2 ? "bg-foreground text-background" : "bg-foreground/10"
-              }`}
-            >
-              2
+          {/* Sidebar - Recent Jobs */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-8">
+              <RecentJobs />
             </div>
-            <span className={step >= 2 ? "font-semibold" : "text-foreground/60"}>
-              Upload de Vídeos
-            </span>
           </div>
         </div>
-
-        {/* Step 1: Aspect Ratio Selection */}
-        {step === 1 && (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>Passo 1: Escolha o Formato do Vídeo</CardTitle>
-              <CardDescription>
-                Selecione o aspect ratio para seus vídeos finais
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <AspectRatioSelector
-                selected={aspectRatio}
-                onSelect={setAspectRatio}
-              />
-
-              <div className="mt-6 rounded-lg bg-foreground/5 p-4">
-                <p className="text-sm text-center">
-                  <span className="font-semibold">Selecionado:</span> {aspectRatio}
-                  {aspectRatio === "9:16" && " - Ideal para Stories e Reels"}
-                  {aspectRatio === "1:1" && " - Ideal para Instagram Feed"}
-                  {aspectRatio === "3:4" && " - Ideal para Portrait"}
-                  {aspectRatio === "16:9" && " - Ideal para YouTube e Landscape"}
-                </p>
-              </div>
-
-              <div className="mt-6 flex justify-end">
-                <Button onClick={() => setStep(2)} size="lg">
-                  Próximo: Fazer Upload
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Step 2: Upload */}
-        {step === 2 && (
-          <Card className="mb-8">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Passo 2: Upload de Vídeos</CardTitle>
-                  <CardDescription>
-                    Faça upload dos vídeos de hooks e bodies
-                  </CardDescription>
-                </div>
-                <Badge variant="secondary">{aspectRatio}</Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-6 md:grid-cols-2">
-                <UploadZone
-                  type="hook"
-                  files={hookFiles}
-                  onFilesChange={setHookFiles}
-                />
-                <UploadZone
-                  type="body"
-                  files={bodyFiles}
-                  onFilesChange={setBodyFiles}
-                />
-              </div>
-
-              {totalCombinations > 0 && (
-                <div className="mt-6 rounded-lg bg-foreground/5 p-4">
-                  <p className="text-center text-sm">
-                    <span className="font-semibold">{totalCombinations}</span> combinações
-                    serão geradas ({hookFiles.length} hooks × {bodyFiles.length} bodies)
-                  </p>
-                </div>
-              )}
-
-              {error && (
-                <div className="mt-4 rounded-lg bg-red-500/10 p-4 text-red-500">
-                  <p className="text-sm">{error}</p>
-                </div>
-              )}
-
-              <div className="mt-6 flex justify-between">
-                <Button
-                  onClick={() => setStep(1)}
-                  variant="outline"
-                  size="lg"
-                >
-                  <ArrowLeft className="mr-2 w-5 h-5" />
-                  Voltar
-                </Button>
-
-                <Button
-                  onClick={handleSubmit}
-                  disabled={!canSubmit}
-                  size="lg"
-                >
-                  {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {isUploading ? "Enviando..." : "Gerar Combinações"}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Recent Jobs */}
-        <RecentJobs />
       </main>
     </div>
   );

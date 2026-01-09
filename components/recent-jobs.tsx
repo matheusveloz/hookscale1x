@@ -43,7 +43,7 @@ export function RecentJobs() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Últimas Criações</CardTitle>
+          <CardTitle>Recent Creations</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8">
@@ -58,11 +58,11 @@ export function RecentJobs() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Últimas Criações</CardTitle>
+          <CardTitle>Recent Creations</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-center text-sm text-foreground/60 py-8">
-            Nenhum job criado ainda. Comece criando suas primeiras combinações!
+            No jobs created yet. Start by creating your first combinations!
           </p>
         </CardContent>
       </Card>
@@ -72,7 +72,7 @@ export function RecentJobs() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Últimas Criações</CardTitle>
+        <CardTitle>Recent Creations</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
@@ -102,25 +102,25 @@ export function RecentJobs() {
                       className="text-xs"
                     >
                       {job.status === "completed"
-                        ? "Completo"
+                        ? "Complete"
                         : job.status === "failed"
-                        ? "Falhou"
+                        ? "Failed"
                         : job.status === "processing"
-                        ? "Processando"
-                        : "Pendente"}
+                        ? "Processing"
+                        : "Pending"}
                     </Badge>
                   </div>
 
                   <div className="flex items-center gap-4 text-xs text-foreground/60">
-                    <span>{job.total_combinations} vídeos</span>
+                    <span>{job.total_combinations} videos</span>
                     {job.status === "completed" && (
                       <span className="text-green-600 dark:text-green-400">
-                        ✓ {job.processed_count}/{job.total_combinations} processados
+                        ✓ {job.processed_count}/{job.total_combinations} processed
                       </span>
                     )}
                     {job.status === "processing" && (
                       <span>
-                        {job.processed_count}/{job.total_combinations} processados
+                        {job.processed_count}/{job.total_combinations} processed
                       </span>
                     )}
                     <span className="flex items-center gap-1">
@@ -143,7 +143,7 @@ export function RecentJobs() {
                     onClick={() => handleViewJob(job.id)}
                   >
                     <Eye className="w-4 h-4 mr-2" />
-                    Abrir
+                    Open
                   </Button>
 
                   {job.status === "completed" && (
@@ -164,7 +164,7 @@ export function RecentJobs() {
 
         {jobs.length > 0 && (
           <p className="text-xs text-center text-foreground/40 mt-4">
-            Mostrando os {jobs.length} jobs mais recentes
+            Showing {jobs.length} most recent jobs
           </p>
         )}
       </CardContent>

@@ -26,11 +26,11 @@ export function VideoList({ combinations, onDownload, onDownloadAll }: VideoList
     <>
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Vídeos Gerados</h3>
+          <h3 className="text-lg font-semibold">Generated Videos</h3>
           {completedCombinations.length > 0 && onDownloadAll && (
             <Button onClick={onDownloadAll}>
               <Download className="mr-2 h-4 w-4" />
-              Baixar Todos (ZIP)
+              Download All (ZIP)
             </Button>
           )}
         </div>
@@ -45,22 +45,22 @@ export function VideoList({ combinations, onDownload, onDownloadAll }: VideoList
                 <div className="flex items-center gap-2">
                   <p className="truncate font-medium">{combination.output_filename}</p>
                   <Badge
-                    variant={
-                      combination.status === "completed"
-                        ? "success"
-                        : combination.status === "failed"
-                        ? "destructive"
-                        : "secondary"
-                    }
-                  >
-                    {combination.status === "completed"
-                      ? "Completo"
+                  variant={
+                    combination.status === "completed"
+                      ? "success"
                       : combination.status === "failed"
-                      ? "Falhou"
-                      : combination.status === "processing"
-                      ? "Processando"
-                      : "Pendente"}
-                  </Badge>
+                      ? "destructive"
+                      : "secondary"
+                  }
+                >
+                  {combination.status === "completed"
+                    ? "Complete"
+                    : combination.status === "failed"
+                    ? "Failed"
+                    : combination.status === "processing"
+                    ? "Processing"
+                    : "Pending"}
+                </Badge>
                 </div>
                 {combination.error && (
                   <p className="text-xs text-red-500 mt-1">{combination.error}</p>
@@ -92,7 +92,7 @@ export function VideoList({ combinations, onDownload, onDownloadAll }: VideoList
 
         {failedCombinations.length > 0 && (
           <p className="text-sm text-red-500">
-            {failedCombinations.length} vídeo(s) falharam durante o processamento
+            {failedCombinations.length} video(s) failed during processing
           </p>
         )}
       </div>
@@ -100,10 +100,10 @@ export function VideoList({ combinations, onDownload, onDownloadAll }: VideoList
       {/* Preview Modal */}
       {previewUrl && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
           onClick={() => setPreviewUrl(null)}
         >
-          <div className="relative max-w-4xl w-full mx-4">
+          <div className="relative max-h-[90vh] max-w-[90vw] flex items-center justify-center">
             <Button
               variant="ghost"
               size="icon"
@@ -116,7 +116,7 @@ export function VideoList({ combinations, onDownload, onDownloadAll }: VideoList
               src={previewUrl}
               controls
               autoPlay
-              className="w-full rounded-lg shadow-2xl"
+              className="max-h-[90vh] max-w-full rounded-lg shadow-2xl object-contain"
               onClick={(e) => e.stopPropagation()}
             />
           </div>
