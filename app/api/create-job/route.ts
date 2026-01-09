@@ -50,14 +50,21 @@ export async function POST(request: NextRequest) {
     // Calculate total combinations (product of all block video counts)
     const totalCombinations = structure.reduce((acc, block) => acc * block.videos.length, 1);
 
-    // Create job
+    // Create job with structure
+    const structureData = structure.map(b => ({ 
+      type: b.type, 
+      customName: b.customName, 
+      blockId: b.blockId 
+    }));
+    
     const job = await createJob(
       `Job ${new Date().toLocaleString("en-US")}`,
       totalCombinations,
-      aspectRatio
+      aspectRatio,
+      structureData
     );
 
-    console.log(`Created job ${job.id} with ${totalCombinations} combinations`);
+    console.log(`✓ Created job ${job.id} with ${totalCombinations} combinations`);
 
     // Create video records for each block
     const videosByBlock: Record<string, { id: string; filename: string }[]> = {};
