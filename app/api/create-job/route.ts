@@ -94,15 +94,15 @@ export async function POST(request: NextRequest) {
     // Generate all combinations recursively
     const generateCombinations = (
       blockIndex: number,
-      currentCombo: { videoId: string; filename: string }[]
-    ): { videoId: string; filename: string }[][] => {
+      currentCombo: { id: string; filename: string }[]
+    ): { id: string; filename: string }[][] => {
       if (blockIndex >= structure.length) {
         return [currentCombo];
       }
 
       const block = structure[blockIndex];
       const blockVideos = videosByBlock[block.blockId];
-      const results: { videoId: string; filename: string }[][] = [];
+      const results: { id: string; filename: string }[][] = [];
 
       for (const video of blockVideos) {
         const newCombo = [...currentCombo, video];
