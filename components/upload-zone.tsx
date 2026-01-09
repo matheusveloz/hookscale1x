@@ -95,14 +95,13 @@ export function UploadZone({ type, videos, onVideosChange }: UploadZoneProps) {
         uploadFile(file);
       }
     },
-    [files, onFilesChange]
+    [videos, onVideosChange, uploadFile]
   );
 
   const handleFileInput = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setError(null);
       const selectedFiles = Array.from(e.target.files || []);
-      const videoFiles: File[] = [];
 
       for (const file of selectedFiles) {
         const validation = validateVideoFile(file);
@@ -114,7 +113,7 @@ export function UploadZone({ type, videos, onVideosChange }: UploadZoneProps) {
         uploadFile(file);
       }
     },
-    [files, onFilesChange]
+    [videos, onVideosChange, uploadFile]
   );
 
   const removeVideo = (index: number) => {
