@@ -2,6 +2,7 @@
 
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { CheckCircle2 } from "lucide-react";
 
 export type AspectRatio = "9:16" | "1:1" | "3:4" | "16:9";
 
@@ -34,7 +35,7 @@ export function AspectRatioSelector({ selected, onSelect }: AspectRatioSelectorP
             className={cn(
               "cursor-pointer p-5 transition-all hover:shadow-lg hover:scale-105",
               selected === ratio.value
-                ? "border-2 border-blue-500 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 shadow-xl"
+                ? "border-2 border-green-500 bg-green-500/5 shadow-lg"
                 : "border border-foreground/10 hover:border-foreground/30"
             )}
             onClick={() => onSelect(ratio.value)}
@@ -46,7 +47,7 @@ export function AspectRatioSelector({ selected, onSelect }: AspectRatioSelectorP
                   className={cn(
                     "rounded-lg shadow-inner transition-all",
                     selected === ratio.value
-                      ? "bg-gradient-to-br from-blue-500 to-purple-600"
+                      ? "bg-green-500"
                       : "bg-foreground/10",
                     ratio.value === "9:16" && "w-7 h-14",
                     ratio.value === "1:1" && "w-12 h-12",
@@ -60,7 +61,7 @@ export function AspectRatioSelector({ selected, onSelect }: AspectRatioSelectorP
               <div className="text-center">
                 <p className={cn(
                   "font-bold text-base mb-1",
-                  selected === ratio.value && "text-blue-600 dark:text-blue-400"
+                  selected === ratio.value && "text-green-600 dark:text-green-400"
                 )}>
                   {ratio.value}
                 </p>
@@ -69,7 +70,7 @@ export function AspectRatioSelector({ selected, onSelect }: AspectRatioSelectorP
               </div>
 
               {selected === ratio.value && (
-                <CheckCircle2 className="w-5 h-5 text-blue-500 absolute top-2 right-2" />
+                <CheckCircle2 className="w-5 h-5 text-green-500 absolute top-2 right-2" />
               )}
             </div>
           </Card>

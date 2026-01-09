@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fafafa;
+  --background: #ffffff;
   --foreground: #0a0a0a;
-  --accent: #0066ff;
-  --accent-hover: #0052cc;
+  --accent: #10b981;
+  --accent-hover: #059669;
 }
 
 @theme inline {
@@ -18,8 +18,8 @@
 .dark {
   --background: #0a0a0a;
   --foreground: #ededed;
-  --accent: #3b82f6;
-  --accent-hover: #2563eb;
+  --accent: #10b981;
+  --accent-hover: #059669;
 }
 
 * {
@@ -31,15 +31,6 @@ body {
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
   min-height: 100vh;
-}
-
-/* Gradient backgrounds */
-.gradient-bg {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 51, 234, 0.1) 100%);
-}
-
-.dark .gradient-bg {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(147, 51, 234, 0.05) 100%);
 }
 
 /* Animations */

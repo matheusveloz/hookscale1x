@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,28 +8,59 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, Download, Eye, Loader2 } from "lucide-react";
 import type { Job } from "@/types";
 
+const ITEMS_PER_PAGE = 5;
+
 export function RecentJobs() {
   const router = useRouter();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetchRecentJobs();
+    fetchRecentJobs(0);
   }, []);
 
-  const fetchRecentJobs = async () => {
+  const fetchRecentJobs = async (pageNum: number) => {
     try {
-      const response = await fetch("/api/jobs/recent");
+      if (pageNum === 0) {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
+      }
+
+      const response = await fetch(`/api/jobs/recent?page=${pageNum}&limit=${ITEMS_PER_PAGE}`);
       if (response.ok) {
         const data = await response.json();
-        setJobs(data.jobs || []);
+        const newJobs = data.jobs || [];
+        
+        if (pageNum === 0) {
+          setJobs(newJobs);
+        } else {
+          setJobs(prev => [...prev, ...newJobs]);
+        }
+        
+        setHasMore(newJobs.length === ITEMS_PER_PAGE);
+        setPage(pageNum);
       }
     } catch (error) {
       console.error("Error fetching recent jobs:", error);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
+
+  const handleScroll = useCallback(() => {
+    if (!scrollContainerRef.current || loadingMore || !hasMore) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+    if (scrollTop + clientHeight >= scrollHeight - 50) {
+      fetchRecentJobs(page + 1);
+    }
+  }, [loadingMore, hasMore, page]);
 
   const handleDownloadZip = (jobId: string) => {
     window.open(`/api/download-zip?jobId=${jobId}`, "_blank");
@@ -70,19 +101,23 @@ export function RecentJobs() {
   }
 
   return (
-    <Card className="border-2 shadow-lg">
+    <Card>
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2">
-          <Clock className="w-5 h-5 text-blue-500" />
+          <Clock className="w-5 h-5 text-green-500" />
           Recent Creations
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
+      <CardContent className="p-0">
+        <div 
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          className="max-h-[600px] overflow-y-auto px-6 pb-6 space-y-3"
+        >
           {jobs.map((job) => (
             <Card
               key={job.id}
-              className="p-4 hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer border-l-4 border-l-transparent hover:border-l-blue-500 animate-fade-in"
+              className="p-4 hover:shadow-md transition-all cursor-pointer border-l-4 border-l-transparent hover:border-l-green-500 animate-fade-in"
               onClick={() => handleViewJob(job.id)}
             >
               <div className="flex items-center justify-between gap-4">
@@ -154,7 +189,7 @@ export function RecentJobs() {
                     <Button
                       size="sm"
                       onClick={() => handleDownloadZip(job.id)}
-                      className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
+                      className="w-full bg-green-500 hover:bg-green-600 text-white"
                     >
                       <Download className="w-4 h-4 mr-2" />
                       ZIP
@@ -166,10 +201,25 @@ export function RecentJobs() {
           ))}
         </div>
 
+          {loadingMore && (
+            <div className="flex items-center justify-center py-4">
+              <Loader2 className="w-5 h-5 animate-spin text-foreground/40" />
+            </div>
+          )}
+
+          {!hasMore && jobs.length > 0 && (
+            <p className="text-xs text-center text-foreground/40 py-4">
+              No more jobs to load
+            </p>
+          )}
+        </div>
+
         {jobs.length > 0 && (
-          <p className="text-xs text-center text-foreground/40 mt-4">
-            Showing {jobs.length} most recent jobs
-          </p>
+          <div className="px-6 pt-4 border-t border-foreground/10">
+            <p className="text-xs text-center text-foreground/40">
+              Showing {jobs.length} job{jobs.length !== 1 ? 's' : ''} · Scroll for more
+            </p>
+          </div>
         )}
       </CardContent>
     </Card>
