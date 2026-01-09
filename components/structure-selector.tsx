@@ -165,7 +165,7 @@ export function StructureSelector({ structure, onStructureChange }: StructureSel
               disabled={!canAdd}
             >
               <Plus className="w-3 h-3 mr-1" />
-              {blockLabels[type]}
+              {defaultLabels[type]}
               {count > 0 && (
                 <span className="ml-1 text-xs text-foreground/40">({count}/3)</span>
               )}
