@@ -160,11 +160,12 @@ export function UploadZone({ type, videos, onVideosChange, compact = false }: Up
           "relative rounded-lg border-2 border-dashed transition-all",
           isDragging && "border-green-500 bg-green-500/10",
           error && "border-red-500",
-          !isDragging && !error && "border-foreground/20 hover:border-green-500/50 bg-foreground/5"
+          !isDragging && !error && "border-foreground/20 hover:border-green-500/50 bg-foreground/5",
+          videos.length >= MAX_VIDEOS_PER_BLOCK && "opacity-50 cursor-not-allowed"
         )}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
+        onDragOver={videos.length >= MAX_VIDEOS_PER_BLOCK ? undefined : handleDragOver}
+        onDragLeave={videos.length >= MAX_VIDEOS_PER_BLOCK ? undefined : handleDragLeave}
+        onDrop={videos.length >= MAX_VIDEOS_PER_BLOCK ? undefined : handleDrop}
       >
         <label className={cn(
           "flex cursor-pointer flex-col items-center justify-center",
@@ -193,6 +194,7 @@ export function UploadZone({ type, videos, onVideosChange, compact = false }: Up
             accept="video/mp4"
             multiple
             onChange={handleFileInput}
+            disabled={videos.length >= MAX_VIDEOS_PER_BLOCK}
           />
         </label>
       </div>

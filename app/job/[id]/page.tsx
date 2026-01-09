@@ -32,9 +32,7 @@ export default function JobPage() {
 
   const ITEMS_PER_PAGE = 12;
 
-  // Fetch job details
-  useEffect(() => {
-    const fetchJob = async () => {
+  const fetchJob = async () => {
       try {
         const response = await fetch(`/api/job?id=${jobId}`);
         if (!response.ok) {
@@ -59,6 +57,8 @@ export default function JobPage() {
       }
     };
 
+  // Fetch job details on mount
+  useEffect(() => {
     fetchJob();
   }, [jobId]);
 
@@ -107,8 +107,8 @@ export default function JobPage() {
             setCurrentProgress(data.total || 0);
             setIsProcessing(false);
             eventSource.close();
-            // Final refresh
-            fetchCombinations();
+            // Final refresh to get ZIP URL
+            setTimeout(() => fetchJob(), 1000);
           } else if (data.status === "failed" || data.status === "error") {
             setProcessingStatus("failed");
             setError(data.error || "Processing failed");
