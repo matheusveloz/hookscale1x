@@ -127,6 +127,22 @@ export async function concatenateVideosWithReencode(
   return concatenateMultipleVideos([inputPath1, inputPath2], outputPath, width, height);
 }
 
+// Helper to probe video for audio and duration
+async function probeVideoInfo(inputPath: string): Promise<{hasAudio: boolean, duration: number}> {
+  return new Promise((resolve) => {
+    ffmpeg.ffprobe(inputPath, (err, metadata) => {
+      if (err) {
+        console.warn(`Could not probe ${inputPath}:`, err.message);
+        resolve({ hasAudio: false, duration: 5 });
+        return;
+      }
+      const hasAudio = metadata.streams?.some(s => s.codec_type === 'audio') || false;
+      const duration = metadata.format?.duration || 5;
+      resolve({ hasAudio, duration });
+    });
+  });
+}
+
 export async function concatenateMultipleVideos(
   inputPaths: string[],
   outputPath: string,
@@ -137,24 +153,14 @@ export async function concatenateMultipleVideos(
     throw new Error('At least 1 video is required');
   }
 
-  return new Promise(async (resolve, reject) => {
-    console.log(`Concatenating ${inputPaths.length} videos -> ${outputPath} (${width}x${height})`);
+  // Probe all videos for audio presence and duration
+  const videoInfo = await Promise.all(inputPaths.map(probeVideoInfo));
+  const anyHasAudio = videoInfo.some(info => info.hasAudio);
 
-    // First, check which videos have audio
-    const hasAudio: boolean[] = [];
-    for (const inputPath of inputPaths) {
-      try {
-        const metadata = await getVideoMetadata(inputPath);
-        const audioStream = metadata ? true : false;
-        hasAudio.push(audioStream);
-      } catch {
-        hasAudio.push(false); // Assume no audio if can't detect
-      }
-    }
+  console.log(`Concatenating ${inputPaths.length} videos -> ${outputPath} (${width}x${height})`);
+  console.log('Video info:', videoInfo.map((info, i) => `video${i}: ${info.hasAudio ? 'has audio' : 'no audio'}, ${info.duration.toFixed(1)}s`));
 
-    const anyHasAudio = hasAudio.some(h => h);
-    console.log(`Audio detection: ${hasAudio.map((h, i) => `#${i+1}:${h ? 'yes' : 'no'}`).join(', ')}`);
-
+  return new Promise((resolve, reject) => {
     const command = ffmpeg();
 
     // Add all input files
@@ -162,41 +168,60 @@ export async function concatenateMultipleVideos(
       command.input(inputPath);
     });
 
-    // Build filters
-    const videoFilters: string[] = [];
-    const concatInputs: string[] = [];
-    
+    const filters: string[] = [];
+
     inputPaths.forEach((_, index) => {
-      // Scale video
-      videoFilters.push(
+      // Video filter - scale, pad, normalize
+      filters.push(
         `[${index}:v]scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=30[v${index}]`
       );
-      
+
+      // Audio filter - only if any video has audio
       if (anyHasAudio) {
-        // Add silent audio for videos without audio
-        if (hasAudio[index]) {
-          videoFilters.push(`[${index}:a]anull[a${index}]`);
+        if (videoInfo[index].hasAudio) {
+          // Use actual audio, normalized to consistent format
+          filters.push(
+            `[${index}:a]aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo[a${index}]`
+          );
         } else {
-          videoFilters.push(`anullsrc=r=44100:cl=stereo[a${index}]`);
+          // Generate silence with matching duration for videos without audio
+          const duration = videoInfo[index].duration;
+          filters.push(
+            `aevalsrc=0:channel_layout=stereo:sample_rate=44100:duration=${duration}[a${index}]`
+          );
         }
-        concatInputs.push(`[v${index}][a${index}]`);
-      } else {
-        concatInputs.push(`[v${index}]`);
       }
     });
 
-    // Concat filter
-    const concatFilter = anyHasAudio
-      ? `${concatInputs.join('')}concat=n=${inputPaths.length}:v=1:a=1[outv][outa]`
-      : `${concatInputs.join('')}concat=n=${inputPaths.length}:v=1:a=0[outv]`;
+    // Build concat filter
+    if (anyHasAudio) {
+      // Interleave video and audio streams for concat
+      const concatInputs = inputPaths.map((_, i) => `[v${i}][a${i}]`).join('');
+      filters.push(`${concatInputs}concat=n=${inputPaths.length}:v=1:a=1[outv][outa]`);
+    } else {
+      // Video only
+      const concatInputs = inputPaths.map((_, i) => `[v${i}]`).join('');
+      filters.push(`${concatInputs}concat=n=${inputPaths.length}:v=1:a=0[outv]`);
+    }
 
-    const outputOpts = anyHasAudio
-      ? ['-map', '[outv]', '-map', '[outa]', '-c:v', 'libx264', '-preset', 'fast', '-crf', '23', '-c:a', 'aac', '-b:a', '128k']
-      : ['-map', '[outv]', '-c:v', 'libx264', '-preset', 'fast', '-crf', '23'];
+    // Build output options
+    const outputOptions = [
+      '-map', '[outv]',
+      '-c:v', 'libx264',
+      '-preset', 'fast',
+      '-crf', '23',
+      '-movflags', '+faststart'
+    ];
+
+    if (anyHasAudio) {
+      outputOptions.push('-map', '[outa]', '-c:a', 'aac', '-b:a', '128k');
+    } else {
+      outputOptions.push('-an');
+    }
 
     command
-      .complexFilter([...videoFilters, concatFilter])
-      .outputOptions([...outputOpts, '-movflags', '+faststart'])
+      .complexFilter(filters)
+      .outputOptions(outputOptions)
       .output(outputPath)
       .on('start', (commandLine) => {
         console.log('FFmpeg command:', commandLine);

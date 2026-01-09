@@ -26,6 +26,7 @@ export default function JobPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
+  const [isDownloading, setIsDownloading] = useState(false);
   const eventSourceRef = useRef<EventSource | null>(null);
   const hasStartedProcessing = useRef(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -159,13 +160,30 @@ export default function JobPage() {
   }, [combinations, displayedCombinations.length, page]);
 
 
-  const handleDownloadAll = () => {
-    // Use pre-generated ZIP if available
-    if (job?.zip_url) {
-      window.open(job.zip_url, "_blank");
-    } else {
-      // Fallback to on-demand generation
-      window.open(`/api/download-zip?jobId=${jobId}`, "_blank");
+  const handleDownloadAll = async () => {
+    if (isDownloading) return;
+
+    setIsDownloading(true);
+    try {
+      const downloadUrl = job?.zip_url || `/api/download-zip?jobId=${jobId}`;
+
+      const response = await fetch(downloadUrl);
+      if (!response.ok) throw new Error("Download failed");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${job?.name || jobId}_videos.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Download error:", err);
+      setError("Failed to download ZIP file");
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -237,10 +255,20 @@ export default function JobPage() {
                 {processingStatus === "completed" && job.zip_url && (
                   <Button
                     onClick={handleDownloadAll}
-                    className="bg-green-500 hover:bg-green-600 text-white"
+                    disabled={isDownloading}
+                    className="bg-green-500 hover:bg-green-600 text-white disabled:opacity-70"
                   >
-                    <Download className="mr-2 h-4 w-4" />
-                    Download All (ZIP) ⚡
+                    {isDownloading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Downloading...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="mr-2 h-4 w-4" />
+                        Download All (ZIP)
+                      </>
+                    )}
                   </Button>
                 )}
               </div>

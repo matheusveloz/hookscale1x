@@ -4,6 +4,12 @@ import {
   createVideo,
   createCombination,
 } from "@/lib/db";
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export const runtime = "edge";
 
@@ -24,9 +30,11 @@ interface BlockData {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { aspectRatio, structure } = body as {
+    const { aspectRatio, structure, customerId, creditsUsed } = body as {
       aspectRatio: string;
       structure: BlockData[];
+      customerId?: string;
+      creditsUsed?: number;
     };
 
     // Validate structure
@@ -50,6 +58,51 @@ export async function POST(request: NextRequest) {
     // Calculate total combinations (product of all block video counts)
     const totalCombinations = structure.reduce((acc, block) => acc * block.videos.length, 1);
 
+    // If customer ID provided, check and update credits
+    if (customerId && creditsUsed) {
+      // Get current subscription
+      const { data: subscription, error: subError } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', customerId)
+        .eq('status', 'active')
+        .single();
+
+      if (subError || !subscription) {
+        return NextResponse.json(
+          { error: 'No active subscription found' },
+          { status: 403 }
+        );
+      }
+
+      // Check if enough credits
+      const creditsRemaining = subscription.video_limit - subscription.videos_used;
+      if (creditsUsed > creditsRemaining) {
+        return NextResponse.json(
+          { error: `Not enough credits. You need ${creditsUsed} but only have ${creditsRemaining} remaining.` },
+          { status: 403 }
+        );
+      }
+
+      // Update credits
+      const { error: updateError } = await supabase
+        .from('subscriptions')
+        .update({
+          videos_used: subscription.videos_used + creditsUsed,
+        })
+        .eq('id', subscription.id);
+
+      if (updateError) {
+        console.error('Error updating credits:', updateError);
+        return NextResponse.json(
+          { error: 'Failed to update credits' },
+          { status: 500 }
+        );
+      }
+
+      console.log(`✓ Updated credits for user ${customerId}: used ${creditsUsed}, new total: ${subscription.videos_used + creditsUsed}/${subscription.video_limit}`);
+    }
+
     // Create job with structure
     const structureData = structure.map(b => ({ 
       type: b.type, 
@@ -61,7 +114,8 @@ export async function POST(request: NextRequest) {
       `Job ${new Date().toLocaleString("en-US")}`,
       totalCombinations,
       aspectRatio,
-      structureData
+      structureData,
+      customerId
     );
 
     console.log(`✓ Created job ${job.id} with ${totalCombinations} combinations`);

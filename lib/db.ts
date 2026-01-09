@@ -6,7 +6,8 @@ export async function createJob(
   name: string | null,
   totalCombinations: number,
   aspectRatio: string = '16:9',
-  structure?: any
+  structure?: any,
+  userId?: string
 ): Promise<Job> {
   const { data, error } = await supabase
     .from('jobs')
@@ -15,6 +16,7 @@ export async function createJob(
       total_combinations: totalCombinations,
       aspect_ratio: aspectRatio,
       structure: structure ? JSON.stringify(structure) : null,
+      user_id: userId || null,
     })
     .select()
     .single();

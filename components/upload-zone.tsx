@@ -204,9 +204,9 @@ export function UploadZone({ type, videos, onVideosChange, compact = false }: Up
           <p className={cn("font-medium", compact ? "text-xs" : "text-sm mb-1")}>
             Drop or <span className="text-green-500">browse</span>
           </p>
-          {!compact && (
-            <p className="text-xs text-foreground/40">.mp4 up to 100MB</p>
-          )}
+          <p className={cn("text-foreground/40", compact ? "text-[10px]" : "text-xs")}>
+            .mp4 up to 100MB
+          </p>
           <input
             type="file"
             className="hidden"
