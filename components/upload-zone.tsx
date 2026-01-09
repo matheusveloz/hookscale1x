@@ -149,10 +149,6 @@ export function UploadZone({ type, videos, onVideosChange, compact = false }: Up
     onVideosChange(videos.filter((_, i) => i !== index));
   };
 
-  const removeVideo = (index: number) => {
-    onVideosChange(videos.filter((_, i) => i !== index));
-  };
-
   const uploadedCount = videos.filter(v => v.blob_url).length;
   const hasErrors = videos.some(v => v.error);
 
