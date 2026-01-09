@@ -32,20 +32,26 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
 
   // Calculate combinations based on structure
-  const getVideosForType = (type: 'hook' | 'body' | 'cta') => {
-    if (type === 'hook') return hookVideos;
-    if (type === 'body') return bodyVideos;
-    return ctaVideos;
-  };
-
   const totalCombinations = structure.reduce((acc, block) => {
-    const videos = getVideosForType(block.type);
+    const videos = videosByBlock[block.id] || [];
     return acc === 0 ? (videos.length || 1) : acc * (videos.length || 1);
   }, 0);
-  const requiredVideos = structure.map(block => getVideosForType(block.type));
-  const hasAllRequiredVideos = requiredVideos.every(videos => videos.length > 0);
-  const allUploaded = requiredVideos.every(videos => videos.every(v => v.blob_url));
+
+  const hasAllRequiredVideos = structure.every(block => {
+    const videos = videosByBlock[block.id] || [];
+    return videos.length > 0;
+  });
+
+  const allUploaded = structure.every(block => {
+    const videos = videosByBlock[block.id] || [];
+    return videos.length > 0 && videos.every(v => v.blob_url);
+  });
+
   const canSubmit = hasAllRequiredVideos && allUploaded && !isCreatingJob;
+
+  const updateVideosForBlock = (blockId: string, videos: UploadedVideo[]) => {
+    setVideosByBlock(prev => ({ ...prev, [blockId]: videos }));
+  };
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
