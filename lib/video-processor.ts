@@ -108,15 +108,9 @@ async function processSingleCombination(
     await downloadFromBlob(hook.blob_url, hookPath);
     await downloadFromBlob(body.blob_url, bodyPath);
 
-    // Concatenate videos
-    try {
-      // Try fast copy method first
-      await concatenateVideos(hookPath, bodyPath, outputPath);
-    } catch (error) {
-      console.log('Copy method failed, trying re-encode...', error);
-      // Fall back to re-encoding if copy fails
-      await concatenateVideosWithReencode(hookPath, bodyPath, outputPath);
-    }
+    // Concatenate videos usando re-encoding (mais lento mas garante compatibilidade)
+    console.log(`Concatenando vídeos com re-encoding...`);
+    await concatenateVideosWithReencode(hookPath, bodyPath, outputPath);
 
     // Upload result to blob
     const fs = await import('fs');

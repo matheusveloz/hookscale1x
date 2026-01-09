@@ -123,30 +123,43 @@ export async function concatenateVideosWithReencode(
   outputPath: string
 ): Promise<void> {
   return new Promise((resolve, reject) => {
+    console.log(`Re-encoding: ${inputPath1} + ${inputPath2} -> ${outputPath}`);
+    
     ffmpeg()
       .input(inputPath1)
       .input(inputPath2)
+      .complexFilter([
+        // Normalizar inputs para mesma resolução/framerate
+        '[0:v]scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=30[v0]',
+        '[1:v]scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=30[v1]',
+        // Concatenar vídeos e áudios
+        '[v0][0:a][v1][1:a]concat=n=2:v=1:a=1[outv][outa]'
+      ])
       .outputOptions([
-        '-filter_complex', '[0:v][0:a][1:v][1:a]concat=n=2:v=1:a=1[outv][outa]',
         '-map', '[outv]',
         '-map', '[outa]',
         '-c:v', 'libx264',
-        '-preset', 'fast',
+        '-preset', 'medium',
+        '-crf', '23',
         '-c:a', 'aac',
+        '-b:a', '128k',
+        '-movflags', '+faststart'
       ])
       .output(outputPath)
       .on('start', (commandLine) => {
-        console.log('FFmpeg command:', commandLine);
+        console.log('FFmpeg re-encode command:', commandLine);
       })
       .on('progress', (progress) => {
         if (progress.percent) {
-          console.log(`Processing: ${Math.round(progress.percent)}% done`);
+          console.log(`Re-encoding: ${Math.round(progress.percent)}% concluído`);
         }
       })
       .on('end', () => {
+        console.log(`✓ Vídeo concatenado com sucesso: ${outputPath}`);
         resolve();
       })
       .on('error', (err) => {
+        console.error('Erro na concatenação:', err);
         reject(err);
       })
       .run();
