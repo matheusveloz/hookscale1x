@@ -232,10 +232,10 @@ export default function JobPage() {
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-2xl font-bold">
+            <h1 className="text-3xl logo-font">
               <span className="text-foreground">Hook</span>
               <span className="text-green-500">Scale</span>
-              <span className="text-foreground/50">.ai</span>
+              <span className="text-foreground/40 text-xl">.ai</span>
             </h1>
           </div>
           <ThemeToggle />

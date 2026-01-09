@@ -36,6 +36,13 @@ button:disabled {
   cursor: not-allowed;
 }
 
+/* Logo font */
+.logo-font {
+  font-family: 'Segoe Script', 'Lucida Handwriting', 'Brush Script MT', 'Comic Sans MS', cursive;
+  font-style: italic;
+  letter-spacing: -0.5px;
+}
+
 /* Animations */
 @keyframes fadeIn {
   from {
