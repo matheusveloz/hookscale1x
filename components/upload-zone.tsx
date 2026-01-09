@@ -197,12 +197,12 @@ export function UploadZone({ type, videos, onVideosChange, compact = false }: Up
         </label>
       </div>
 
-      {/* Upload progress bar */}
-      {isUploading && (
+      {/* Show uploading indicator even when collapsed */}
+      {videos.some(v => v.uploading) && !isExpanded && (
         <div className="space-y-1">
-          <Progress value={uploadProgress} className="h-1.5" />
+          <Progress value={50} className="h-1.5" />
           <p className="text-xs text-foreground/50 text-center">
-            Uploading... {uploadProgress}%
+            Uploading {videos.filter(v => v.uploading).length} file(s)...
           </p>
         </div>
       )}
