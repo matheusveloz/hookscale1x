@@ -18,52 +18,57 @@ export function UploadZone({ type, videos, onVideosChange }: UploadZoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const uploadFile = async (file: File) => {
-    const newVideo: UploadedVideo = {
+  const uploadFiles = async (files: File[]) => {
+    // Add all files to list with uploading state
+    const newVideos: UploadedVideo[] = files.map(file => ({
       file,
       type,
       uploading: true,
       progress: 0,
-    };
+    }));
 
-    // Add to list immediately
-    onVideosChange([...videos, newVideo]);
+    onVideosChange(prev => [...prev, ...newVideos]);
 
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("type", type);
+    // Upload all files in parallel
+    await Promise.all(
+      files.map(async (file) => {
+        try {
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("type", type);
 
-      const response = await fetch("/api/upload-file", {
-        method: "POST",
-        body: formData,
-      });
+          const response = await fetch("/api/upload-file", {
+            method: "POST",
+            body: formData,
+          });
 
-      if (!response.ok) {
-        throw new Error("Upload failed");
-      }
+          if (!response.ok) {
+            throw new Error("Upload failed");
+          }
 
-      const data = await response.json();
+          const data = await response.json();
 
-      // Update video with blob_url
-      onVideosChange(prev =>
-        prev.map(v =>
-          v.file === file
-            ? { ...v, blob_url: data.blob_url, duration: data.duration, uploading: false, progress: 100 }
-            : v
-        )
-      );
-    } catch (err) {
-      console.error("Upload error:", err);
-      // Mark as error
-      onVideosChange(prev =>
-        prev.map(v =>
-          v.file === file
-            ? { ...v, uploading: false, error: "Upload failed" }
-            : v
-        )
-      );
-    }
+          // Update video with blob_url
+          onVideosChange(prev =>
+            prev.map(v =>
+              v.file === file
+                ? { ...v, blob_url: data.blob_url, duration: data.duration, uploading: false, progress: 100 }
+                : v
+            )
+          );
+        } catch (err) {
+          console.error("Upload error:", err);
+          // Mark as error
+          onVideosChange(prev =>
+            prev.map(v =>
+              v.file === file
+                ? { ...v, uploading: false, error: "Upload failed" }
+                : v
+            )
+          );
+        }
+      })
+    );
   };
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -83,7 +88,7 @@ export function UploadZone({ type, videos, onVideosChange }: UploadZoneProps) {
       setError(null);
 
       const droppedFiles = Array.from(e.dataTransfer.files);
-      const videoFiles: File[] = [];
+      const validFiles: File[] = [];
 
       for (const file of droppedFiles) {
         const validation = validateVideoFile(file);
@@ -91,17 +96,21 @@ export function UploadZone({ type, videos, onVideosChange }: UploadZoneProps) {
           setError(validation.error || "Invalid file");
           return;
         }
-        // Upload immediately
-        uploadFile(file);
+        validFiles.push(file);
+      }
+
+      if (validFiles.length > 0) {
+        uploadFiles(validFiles);
       }
     },
-    [videos, onVideosChange, uploadFile]
+    [uploadFiles]
   );
 
   const handleFileInput = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setError(null);
       const selectedFiles = Array.from(e.target.files || []);
+      const validFiles: File[] = [];
 
       for (const file of selectedFiles) {
         const validation = validateVideoFile(file);
@@ -109,11 +118,14 @@ export function UploadZone({ type, videos, onVideosChange }: UploadZoneProps) {
           setError(validation.error || "Invalid file");
           return;
         }
-        // Upload immediately
-        uploadFile(file);
+        validFiles.push(file);
+      }
+
+      if (validFiles.length > 0) {
+        uploadFiles(validFiles);
       }
     },
-    [videos, onVideosChange, uploadFile]
+    [uploadFiles]
   );
 
   const removeVideo = (index: number) => {
