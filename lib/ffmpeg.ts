@@ -133,8 +133,8 @@ export async function concatenateMultipleVideos(
   width: number = 1920,
   height: number = 1080
 ): Promise<void> {
-  if (inputPaths.length < 2) {
-    throw new Error('At least 2 videos are required for concatenation');
+  if (inputPaths.length < 1) {
+    throw new Error('At least 1 video is required');
   }
 
   return new Promise((resolve, reject) => {
@@ -147,15 +147,22 @@ export async function concatenateMultipleVideos(
       command.input(inputPath);
     });
 
-    // Build filter for N videos
+    // Build filter for N videos with audio handling
     const scaleFilters: string[] = [];
     const concatInputs: string[] = [];
 
     inputPaths.forEach((_, index) => {
+      // Video scaling
       scaleFilters.push(
         `[${index}:v]scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=30[v${index}]`
       );
-      concatInputs.push(`[v${index}][${index}:a]`);
+      
+      // Audio handling - add silent audio if not present
+      scaleFilters.push(
+        `[${index}:a]anull[a${index}]`
+      );
+      
+      concatInputs.push(`[v${index}][a${index}]`);
     });
 
     // Add concat filter
@@ -163,6 +170,7 @@ export async function concatenateMultipleVideos(
 
     command
       .complexFilter([...scaleFilters, concatFilter])
+      .outputOptions(['-shortest']) // Handle different audio lengths
       .outputOptions([
         '-map', '[outv]',
         '-map', '[outa]',
