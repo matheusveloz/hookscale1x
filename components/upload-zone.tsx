@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { Upload, X, CheckCircle2, FileVideo } from "lucide-react";
+import { Upload, X, CheckCircle2, FileVideo, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { cn, validateVideoFile } from "@/lib/utils";
@@ -20,6 +20,7 @@ export function UploadZone({ type, videos, onVideosChange, compact = false }: Up
   const [error, setError] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   const uploadFiles = async (files: File[]) => {
     setIsUploading(true);
@@ -142,6 +143,10 @@ export function UploadZone({ type, videos, onVideosChange, compact = false }: Up
 
   const clearAll = () => {
     onVideosChange([]);
+  };
+
+  const removeVideo = (index: number) => {
+    onVideosChange(videos.filter((_, i) => i !== index));
   };
 
   const removeVideo = (index: number) => {
