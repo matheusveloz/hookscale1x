@@ -44,13 +44,9 @@ export default function JobPage() {
         setDisplayedCombinations(data.combinations.slice(0, ITEMS_PER_PAGE));
         setProcessingStatus(data.job.status);
         
-        // Don't set progress from DB - let SSE handle it
-        // Only set if truly completed (and not actively processing)
-        if (data.job.status === 'completed' && !hasStartedProcessing.current) {
-          setCurrentProgress(data.job.total_combinations);
-        } else {
-          setCurrentProgress(0);
-        }
+        // NEVER set progress from DB - always start at 0
+        // Let SSE update it, or stay at 0 if already complete
+        setCurrentProgress(0);
       } catch (err) {
         console.error("Error fetching job:", err);
         setError("Failed to load job details");
@@ -62,13 +58,13 @@ export default function JobPage() {
     fetchJob();
   }, [jobId]);
 
-  // Auto-start processing when job is loaded
+  // Auto-start processing when job is loaded AND it's truly pending
   useEffect(() => {
-    if (job && processingStatus === "pending" && !hasStartedProcessing.current) {
+    if (job && job.status === "pending" && !hasStartedProcessing.current) {
       hasStartedProcessing.current = true;
       handleStartProcessing();
     }
-  }, [job, processingStatus]);
+  }, [job]);
 
   // Auto-refresh while processing
   useEffect(() => {
@@ -162,31 +158,10 @@ export default function JobPage() {
     }
   }, [combinations, displayedCombinations.length, page]);
 
-  const handleDownload = async (id: string, filename: string) => {
-    try {
-      // Fetch the video
-      const response = await fetch(`/api/download?id=${id}`);
-      if (!response.ok) throw new Error('Download failed');
-
-      // Get the blob
-      const blob = await response.blob();
-
-      // Create download link
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-
-      // Cleanup
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (err) {
-      console.error('Download error:', err);
-      // Fallback to opening in new tab
-      window.open(`/api/download?id=${id}`, '_blank');
-    }
+  // Not used anymore - downloads are direct from blob_url
+  const handleDownload = (id: string, filename: string) => {
+    // This function is kept for compatibility but not used
+    // Downloads are now direct <a> tags to blob_url
   };
 
   const handleDownloadAll = () => {
