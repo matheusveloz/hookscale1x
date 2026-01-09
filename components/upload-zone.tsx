@@ -85,17 +85,26 @@ export function UploadZone({ type, files, onFilesChange }: UploadZoneProps) {
 
       <Card
         className={cn(
-          "relative border-2 border-dashed transition-colors",
-          isDragging && "border-foreground bg-foreground/5",
-          error && "border-red-500"
+          "relative border-2 border-dashed transition-all",
+          isDragging && "border-blue-500 bg-blue-50 dark:bg-blue-950/20 scale-105 shadow-xl",
+          error && "border-red-500",
+          !isDragging && "border-foreground/20 hover:border-foreground/40"
         )}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
         <label className="flex cursor-pointer flex-col items-center justify-center p-12">
-          <Upload className="mb-4 h-12 w-12 text-foreground/40" />
-          <p className="mb-2 text-sm font-medium">
+          <div className={cn(
+            "w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-all",
+            isDragging ? "bg-blue-500 scale-110" : "bg-foreground/5"
+          )}>
+            <Upload className={cn(
+              "h-8 w-8 transition-colors",
+              isDragging ? "text-white" : "text-foreground/40"
+            )} />
+          </div>
+          <p className="mb-2 text-sm font-semibold">
             Drag & drop or click to select
           </p>
           <p className="text-xs text-foreground/60">
@@ -118,16 +127,21 @@ export function UploadZone({ type, files, onFilesChange }: UploadZoneProps) {
       {files.length > 0 && (
         <div className="space-y-2">
           {files.map((file, index) => (
-            <Card key={index} className="flex items-center justify-between p-3">
-              <div className="flex-1 min-w-0">
-                <p className="truncate text-sm font-medium">{file.name}</p>
-                <p className="text-xs text-foreground/60">{formatBytes(file.size)}</p>
+            <Card key={index} className="flex items-center justify-between p-4 border hover:shadow-md transition-shadow animate-fade-in">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold flex-shrink-0">
+                  {index + 1}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="truncate text-sm font-semibold">{file.name}</p>
+                  <p className="text-xs text-foreground/60">{formatBytes(file.size)}</p>
+                </div>
               </div>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => removeFile(index)}
-                className="ml-2"
+                className="ml-2 hover:bg-red-500/10 hover:text-red-500"
               >
                 <X className="h-4 w-4" />
               </Button>

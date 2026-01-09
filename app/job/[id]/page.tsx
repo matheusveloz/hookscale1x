@@ -144,30 +144,42 @@ export default function JobPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-foreground/10">
-        <div className="container mx-auto flex items-center justify-between px-4 py-4">
+      <header className="border-b border-foreground/10 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20">
+        <div className="container mx-auto flex items-center justify-between px-4 py-6">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => router.push("/")}
+              className="hover:bg-white/50 dark:hover:bg-black/20"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-2xl font-bold">HookScale</h1>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                H
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  HookScale
+                </h1>
+                <p className="text-xs text-foreground/60">Job Progress</p>
+              </div>
+            </div>
           </div>
           <ThemeToggle />
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
-        <Card className="mb-8">
-          <CardHeader>
+      <main className="container mx-auto px-4 py-12 max-w-5xl">
+        <Card className="mb-8 border-2 shadow-xl">
+          <CardHeader className="pb-6">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>{job.name || `Job ${job.id}`}</CardTitle>
-                <CardDescription>
-                  {job.total_combinations} combinações totais
+                <CardTitle className="text-3xl mb-2">{job.name || `Job ${job.id}`}</CardTitle>
+                <CardDescription className="text-base flex items-center gap-2">
+                  <span className="font-semibold text-foreground/80">{job.total_combinations}</span>
+                  total combinations
                 </CardDescription>
               </div>
               <Badge
@@ -180,15 +192,17 @@ export default function JobPage() {
                     ? "default"
                     : "secondary"
                 }
-              >
-                {processingStatus === "completed"
-                  ? "Concluído"
-                  : processingStatus === "failed"
-                  ? "Falhou"
-                  : processingStatus === "processing"
-                  ? "Processando"
-                  : "Pendente"}
-              </Badge>
+
+                  className="text-sm px-4 py-1"
+                >
+                  {processingStatus === "completed"
+                    ? "Complete"
+                    : processingStatus === "failed"
+                    ? "Failed"
+                    : processingStatus === "processing"
+                    ? "Processing"
+                    : "Pending"}
+                </Badge>
             </div>
           </CardHeader>
           <CardContent>
@@ -202,24 +216,37 @@ export default function JobPage() {
             )}
 
             {processingStatus === "completed" && (
-              <div className="rounded-lg bg-green-500/10 p-4 text-green-600 dark:text-green-400 mb-4">
-                <p className="font-medium">✓ Processamento concluído com sucesso!</p>
-                <p className="text-sm mt-1">
-                  Todos os vídeos estão prontos para download.
-                </p>
+              <div className="rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 p-6 border-2 border-green-200 dark:border-green-800/30 mb-6">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-green-500 flex items-center justify-center flex-shrink-0">
+                    <CheckCircle2 className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-green-900 dark:text-green-100 mb-1">
+                      Processing Complete!
+                    </p>
+                    <p className="text-sm text-green-700 dark:text-green-300">
+                      All videos are ready for download.
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
 
             {error && (
-              <div className="rounded-lg bg-red-500/10 p-4 text-red-500 mb-4">
-                <p className="font-medium">Erro no processamento</p>
-                <p className="text-sm mt-1">{error}</p>
+              <div className="rounded-xl bg-red-50 dark:bg-red-950/20 p-6 border-2 border-red-200 dark:border-red-800/30 mb-6">
+                <p className="font-bold text-red-600 dark:text-red-400 mb-1">Processing Error</p>
+                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
               </div>
             )}
 
             {processingStatus === "pending" && !isProcessing && (
-              <Button onClick={handleStartProcessing} className="w-full">
-                Iniciar Processamento
+              <Button 
+                onClick={handleStartProcessing} 
+                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg"
+                size="lg"
+              >
+                Start Processing
               </Button>
             )}
           </CardContent>

@@ -27,38 +27,50 @@ export function AspectRatioSelector({ selected, onSelect }: AspectRatioSelectorP
         </p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {aspectRatios.map((ratio) => (
           <Card
             key={ratio.value}
             className={cn(
-              "cursor-pointer p-4 transition-all hover:shadow-md",
+              "cursor-pointer p-5 transition-all hover:shadow-lg hover:scale-105",
               selected === ratio.value
-                ? "border-2 border-foreground bg-foreground/5"
-                : "border border-foreground/20"
+                ? "border-2 border-blue-500 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 shadow-xl"
+                : "border border-foreground/10 hover:border-foreground/30"
             )}
             onClick={() => onSelect(ratio.value)}
           >
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-col items-center gap-3">
               {/* Visual representation */}
-              <div className="relative w-16 h-16 flex items-center justify-center">
+              <div className="relative w-20 h-20 flex items-center justify-center">
                 <div
                   className={cn(
-                    "bg-foreground/20 rounded",
-                    ratio.value === "9:16" && "w-6 h-12",
-                    ratio.value === "1:1" && "w-10 h-10",
-                    ratio.value === "3:4" && "w-8 h-11",
-                    ratio.value === "16:9" && "w-12 h-7"
+                    "rounded-lg shadow-inner transition-all",
+                    selected === ratio.value
+                      ? "bg-gradient-to-br from-blue-500 to-purple-600"
+                      : "bg-foreground/10",
+                    ratio.value === "9:16" && "w-7 h-14",
+                    ratio.value === "1:1" && "w-12 h-12",
+                    ratio.value === "3:4" && "w-9 h-12",
+                    ratio.value === "16:9" && "w-14 h-8"
                   )}
                 />
               </div>
 
               {/* Label */}
               <div className="text-center">
-                <p className="font-semibold text-sm">{ratio.value}</p>
-                <p className="text-xs text-foreground/60">{ratio.label}</p>
+                <p className={cn(
+                  "font-bold text-base mb-1",
+                  selected === ratio.value && "text-blue-600 dark:text-blue-400"
+                )}>
+                  {ratio.value}
+                </p>
+                <p className="text-xs font-medium text-foreground/70">{ratio.label}</p>
                 <p className="text-xs text-foreground/40 mt-1">{ratio.dimensions}</p>
               </div>
+
+              {selected === ratio.value && (
+                <CheckCircle2 className="w-5 h-5 text-blue-500 absolute top-2 right-2" />
+              )}
             </div>
           </Card>
         ))}

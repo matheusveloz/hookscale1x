@@ -70,23 +70,26 @@ export function RecentJobs() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Recent Creations</CardTitle>
+    <Card className="border-2 shadow-lg">
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center gap-2">
+          <Clock className="w-5 h-5 text-blue-500" />
+          Recent Creations
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
           {jobs.map((job) => (
             <Card
               key={job.id}
-              className="p-4 hover:shadow-md transition-shadow cursor-pointer"
+              className="p-4 hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer border-l-4 border-l-transparent hover:border-l-blue-500 animate-fade-in"
               onClick={() => handleViewJob(job.id)}
             >
               <div className="flex items-center justify-between gap-4">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-medium truncate">{job.name || `Job ${job.id.slice(0, 8)}`}</h4>
-                    <Badge variant="secondary" className="text-xs">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h4 className="font-semibold truncate">{job.name || `Job ${job.id.slice(0, 8)}`}</h4>
+                    <Badge variant="outline" className="text-xs font-bold">
                       {job.aspect_ratio || "16:9"}
                     </Badge>
                     <Badge
@@ -136,11 +139,12 @@ export function RecentJobs() {
                   </div>
                 </div>
 
-                <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                <div className="flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handleViewJob(job.id)}
+                    className="w-full"
                   >
                     <Eye className="w-4 h-4 mr-2" />
                     Open
@@ -148,9 +152,9 @@ export function RecentJobs() {
 
                   {job.status === "completed" && (
                     <Button
-                      variant="default"
                       size="sm"
                       onClick={() => handleDownloadZip(job.id)}
+                      className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
                     >
                       <Download className="w-4 h-4 mr-2" />
                       ZIP
