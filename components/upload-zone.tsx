@@ -22,11 +22,30 @@ export function UploadZone({ type, videos, onVideosChange, compact = false }: Up
   const [isUploading, setIsUploading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
+  const MAX_VIDEOS_PER_BLOCK = 10;
+
   const uploadFiles = async (files: File[]) => {
+    // Check limit
+    const remainingSlots = MAX_VIDEOS_PER_BLOCK - videos.length;
+    if (remainingSlots <= 0) {
+      setError(`Maximum ${MAX_VIDEOS_PER_BLOCK} videos per block`);
+      return;
+    }
+
+    // Limit files to remaining slots
+    const filesToUpload = files.slice(0, remainingSlots);
+    if (files.length > remainingSlots) {
+      setError(`Only adding ${remainingSlots} video(s) - max ${MAX_VIDEOS_PER_BLOCK} per block`);
+      setTimeout(() => setError(null), 5000); // Clear error after 5s
+    }
+
+    // Expand list to show progress
+    setIsExpanded(true);
+
     setIsUploading(true);
     setUploadProgress(0);
 
-    const newVideos: UploadedVideo[] = files.map(file => ({
+    const newVideos: UploadedVideo[] = filesToUpload.map(file => ({
       file,
       type,
       uploading: true,
@@ -36,10 +55,10 @@ export function UploadZone({ type, videos, onVideosChange, compact = false }: Up
     onVideosChange(currentVideos);
 
     let completed = 0;
-    const total = files.length;
+    const total = filesToUpload.length;
 
     const results = await Promise.all(
-      files.map(async (file) => {
+      filesToUpload.map(async (file) => {
         try {
           const formData = new FormData();
           formData.append("file", file);
