@@ -199,7 +199,6 @@ export function RecentJobs() {
               </div>
             </Card>
           ))}
-        </div>
 
           {loadingMore && (
             <div className="flex items-center justify-center py-4">
