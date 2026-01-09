@@ -170,23 +170,30 @@ async function processSingleCombination(
 
   try {
     console.log(`Processing ${combination.output_filename} with ${videos.length} videos...`);
+    console.log('Videos in order:', videos.map((v, i) => `#${i}: ${v.type} - ${v.filename} (${v.id})`));
 
     // Download all videos from blob
     for (let i = 0; i < videos.length; i++) {
       const video = videos[i];
       const videoPath = path.join(tempDir, `video${i}_${video.id}.mp4`);
+      console.log(`  [${i+1}/${videos.length}] Downloading: ${video.filename} (${video.type})`);
       await downloadFromBlob(video.blob_url, videoPath);
       videoPaths.push(videoPath);
+      console.log(`  ✓ Downloaded to: ${videoPath}`);
     }
 
     // Concatenate all videos using re-encoding
     console.log(`Concatenating ${videos.length} videos (${dimensions.width}x${dimensions.height})...`);
+    console.log('Video paths in order:', videoPaths);
+    
     await concatenateMultipleVideos(
       videoPaths,
       outputPath,
       dimensions.width,
       dimensions.height
     );
+    
+    console.log(`✓ Concatenation complete: ${outputPath}`);
 
     // Upload result to blob
     const fs = await import('fs');
