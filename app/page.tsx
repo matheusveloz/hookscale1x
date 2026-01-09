@@ -1,16 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { UploadZone } from "@/components/upload-zone";
 import { AspectRatioSelector, type AspectRatio } from "@/components/aspect-ratio-selector";
+import { RecentJobs } from "@/components/recent-jobs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, ArrowRight, ArrowLeft, CheckCircle2 } from "lucide-react";
 
 export default function HomePage() {
   const router = useRouter();
+  const [step, setStep] = useState<1 | 2>(1); // Wizard steps
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>("16:9");
   const [hookFiles, setHookFiles] = useState<File[]>([]);
   const [bodyFiles, setBodyFiles] = useState<File[]>([]);
@@ -73,70 +76,140 @@ export default function HomePage() {
       </header>
 
       <main className="container mx-auto px-4 py-8 max-w-6xl">
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Combinar Vídeos de Hooks e Bodies</CardTitle>
-            <CardDescription>
-              Escolha o formato e faça upload dos vídeos. O sistema irá gerar todas as
-              combinações possíveis automaticamente.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {/* Aspect Ratio Selector */}
-            <div className="mb-8">
+        {/* Progress Steps */}
+        <div className="flex items-center justify-center mb-8 gap-4">
+          <div className="flex items-center gap-2">
+            <div
+              className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                step >= 1 ? "bg-foreground text-background" : "bg-foreground/10"
+              }`}
+            >
+              {step > 1 ? <CheckCircle2 className="w-5 h-5" /> : "1"}
+            </div>
+            <span className={step >= 1 ? "font-semibold" : "text-foreground/60"}>
+              Escolher Formato
+            </span>
+          </div>
+
+          <ArrowRight className="w-5 h-5 text-foreground/40" />
+
+          <div className="flex items-center gap-2">
+            <div
+              className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                step >= 2 ? "bg-foreground text-background" : "bg-foreground/10"
+              }`}
+            >
+              2
+            </div>
+            <span className={step >= 2 ? "font-semibold" : "text-foreground/60"}>
+              Upload de Vídeos
+            </span>
+          </div>
+        </div>
+
+        {/* Step 1: Aspect Ratio Selection */}
+        {step === 1 && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Passo 1: Escolha o Formato do Vídeo</CardTitle>
+              <CardDescription>
+                Selecione o aspect ratio para seus vídeos finais
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
               <AspectRatioSelector
                 selected={aspectRatio}
                 onSelect={setAspectRatio}
               />
-            </div>
 
-            <div className="grid gap-6 md:grid-cols-2">
-              <UploadZone
-                type="hook"
-                files={hookFiles}
-                onFilesChange={setHookFiles}
-              />
-              <UploadZone
-                type="body"
-                files={bodyFiles}
-                onFilesChange={setBodyFiles}
-              />
-            </div>
-
-            {totalCombinations > 0 && (
               <div className="mt-6 rounded-lg bg-foreground/5 p-4">
-                <p className="text-center text-sm">
-                  <span className="font-semibold">{totalCombinations}</span> combinações
-                  serão geradas ({hookFiles.length} hooks × {bodyFiles.length} bodies)
+                <p className="text-sm text-center">
+                  <span className="font-semibold">Selecionado:</span> {aspectRatio}
+                  {aspectRatio === "9:16" && " - Ideal para Stories e Reels"}
+                  {aspectRatio === "1:1" && " - Ideal para Instagram Feed"}
+                  {aspectRatio === "3:4" && " - Ideal para Portrait"}
+                  {aspectRatio === "16:9" && " - Ideal para YouTube e Landscape"}
                 </p>
               </div>
-            )}
 
-            {error && (
-              <div className="mt-4 rounded-lg bg-red-500/10 p-4 text-red-500">
-                <p className="text-sm">{error}</p>
+              <div className="mt-6 flex justify-end">
+                <Button onClick={() => setStep(2)} size="lg">
+                  Próximo: Fazer Upload
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
               </div>
-            )}
+            </CardContent>
+          </Card>
+        )}
 
-            <div className="mt-6 flex justify-end">
-              <Button
-                onClick={handleSubmit}
-                disabled={!canSubmit}
-                size="lg"
-              >
-                {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isUploading ? "Enviando..." : "Gerar Combinações"}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Step 2: Upload */}
+        {step === 2 && (
+          <Card className="mb-8">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Passo 2: Upload de Vídeos</CardTitle>
+                  <CardDescription>
+                    Faça upload dos vídeos de hooks e bodies
+                  </CardDescription>
+                </div>
+                <Badge variant="secondary">{aspectRatio}</Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-6 md:grid-cols-2">
+                <UploadZone
+                  type="hook"
+                  files={hookFiles}
+                  onFilesChange={setHookFiles}
+                />
+                <UploadZone
+                  type="body"
+                  files={bodyFiles}
+                  onFilesChange={setBodyFiles}
+                />
+              </div>
 
-        <div className="text-center text-sm text-foreground/60">
-          <p>
-            Faça upload de seus vídeos e aguarde o processamento. Você será redirecionado
-            para acompanhar o progresso.
-          </p>
-        </div>
+              {totalCombinations > 0 && (
+                <div className="mt-6 rounded-lg bg-foreground/5 p-4">
+                  <p className="text-center text-sm">
+                    <span className="font-semibold">{totalCombinations}</span> combinações
+                    serão geradas ({hookFiles.length} hooks × {bodyFiles.length} bodies)
+                  </p>
+                </div>
+              )}
+
+              {error && (
+                <div className="mt-4 rounded-lg bg-red-500/10 p-4 text-red-500">
+                  <p className="text-sm">{error}</p>
+                </div>
+              )}
+
+              <div className="mt-6 flex justify-between">
+                <Button
+                  onClick={() => setStep(1)}
+                  variant="outline"
+                  size="lg"
+                >
+                  <ArrowLeft className="mr-2 w-5 h-5" />
+                  Voltar
+                </Button>
+
+                <Button
+                  onClick={handleSubmit}
+                  disabled={!canSubmit}
+                  size="lg"
+                >
+                  {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isUploading ? "Enviando..." : "Gerar Combinações"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Recent Jobs */}
+        <RecentJobs />
       </main>
     </div>
   );
