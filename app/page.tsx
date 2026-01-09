@@ -48,7 +48,19 @@ export default function HomePage() {
     return videos.length > 0 && videos.every(v => v.blob_url);
   });
 
+  const isAnyUploading = Object.values(videosByBlock).some(videos =>
+    videos.some(v => v.uploading)
+  );
+
   const canSubmit = hasAllRequiredVideos && allUploaded && !isCreatingJob;
+  
+  const getButtonText = () => {
+    if (isCreatingJob) return "Creating...";
+    if (isAnyUploading) return "Uploading...";
+    if (!hasAllRequiredVideos) return "Generate";
+    if (allUploaded) return "Generate";
+    return "Generate";
+  };
 
   const updateVideosForBlock = (blockId: string, videos: UploadedVideo[]) => {
     setVideosByBlock(prev => ({ ...prev, [blockId]: videos }));
@@ -273,10 +285,15 @@ export default function HomePage() {
                    <Button
                      onClick={handleSubmit}
                      disabled={!canSubmit}
-                     className="bg-green-500 hover:bg-green-600 text-white px-8"
+                     className={cn(
+                       "px-8",
+                       canSubmit 
+                         ? "bg-green-500 hover:bg-green-600 text-white" 
+                         : "bg-foreground/10 text-foreground/40 cursor-not-allowed"
+                     )}
                    >
-                     {isCreatingJob && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                     {isCreatingJob ? "Creating..." : allUploaded ? "Generate" : "Uploading..."}
+                     {(isCreatingJob || isAnyUploading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                     {getButtonText()}
                    </Button>
                 </div>
               </div>
