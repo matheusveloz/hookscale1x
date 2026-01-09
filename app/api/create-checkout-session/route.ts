@@ -3,10 +3,15 @@ import { stripe, STRIPE_PLANS, type PlanId, getOrCreatePrice } from '@/lib/strip
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('[Checkout] Starting checkout session creation');
+    
     const body = await request.json();
     const { planId, userId, isUpgrade } = body;
 
+    console.log('[Checkout] Request data:', { planId, userId, isUpgrade });
+
     if (!planId || !(planId in STRIPE_PLANS)) {
+      console.error('[Checkout] Invalid plan:', planId);
       return NextResponse.json(
         { error: 'Invalid plan selected' },
         { status: 400 }
@@ -14,9 +19,21 @@ export async function POST(request: NextRequest) {
     }
 
     const plan = STRIPE_PLANS[planId as PlanId];
+    console.log('[Checkout] Plan selected:', plan);
+
+    // Verify Stripe key is set
+    if (!process.env.STRIPE_SECRET_KEY) {
+      console.error('[Checkout] STRIPE_SECRET_KEY not set!');
+      return NextResponse.json(
+        { error: 'Stripe not configured' },
+        { status: 500 }
+      );
+    }
 
     // Get or create Stripe price dynamically
+    console.log('[Checkout] Getting/creating price...');
     const priceId = await getOrCreatePrice(planId as PlanId);
+    console.log('[Checkout] Price ID:', priceId);
 
     // Get the origin for the success/cancel URLs
     const origin = request.headers.get('origin') || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';

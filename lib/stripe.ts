@@ -34,6 +34,8 @@ export async function getOrCreatePrice(planId: PlanId): Promise<string> {
   const plan = STRIPE_PLANS[planId];
   
   try {
+    console.log(`[Stripe] Getting/creating price for plan: ${planId}`);
+    
     // Search for existing product by name
     const products = await stripe.products.search({
       query: `name:'${plan.name}'`,
@@ -44,13 +46,16 @@ export async function getOrCreatePrice(planId: PlanId): Promise<string> {
     if (products.data.length > 0) {
       // Product exists, use it
       productId = products.data[0].id;
+      console.log(`[Stripe] Found existing product: ${productId}`);
     } else {
       // Create new product
+      console.log(`[Stripe] Creating new product: ${plan.name}`);
       const product = await stripe.products.create({
         name: plan.name,
         description: `${plan.videos} unique creatives per month`,
       });
       productId = product.id;
+      console.log(`[Stripe] Created product: ${productId}`);
     }
 
     // Search for existing price for this product
@@ -61,10 +66,12 @@ export async function getOrCreatePrice(planId: PlanId): Promise<string> {
 
     if (prices.data.length > 0) {
       // Return existing price
+      console.log(`[Stripe] Found existing price: ${prices.data[0].id}`);
       return prices.data[0].id;
     }
 
     // Create new price
+    console.log(`[Stripe] Creating new price: $${plan.price / 100}`);
     const price = await stripe.prices.create({
       product: productId,
       unit_amount: plan.price,
@@ -74,9 +81,16 @@ export async function getOrCreatePrice(planId: PlanId): Promise<string> {
       },
     });
 
+    console.log(`[Stripe] Created price: ${price.id}`);
     return price.id;
-  } catch (error) {
-    console.error('Error creating/getting Stripe price:', error);
-    throw new Error('Failed to setup payment');
+  } catch (error: any) {
+    console.error('[Stripe] Error creating/getting price:', {
+      planId,
+      error: error.message,
+      stack: error.stack,
+      type: error.type,
+      code: error.code,
+    });
+    throw new Error(`Failed to setup payment: ${error.message}`);
   }
 }
