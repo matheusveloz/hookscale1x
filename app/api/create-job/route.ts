@@ -70,7 +70,9 @@ export async function POST(request: NextRequest) {
     const videosByBlock: Record<string, { id: string; filename: string }[]> = {};
 
     for (const block of structure) {
+      console.log(`Creating videos for block ${block.blockId} (${block.type}): ${block.videos.length} videos`);
       videosByBlock[block.blockId] = [];
+      
       for (const videoData of block.videos) {
         const video = await createVideo(
           job.id,
@@ -80,9 +82,14 @@ export async function POST(request: NextRequest) {
           videoData.duration,
           videoData.file_size
         );
+        console.log(`  ✓ Created video ${video.id} (${videoData.filename})`);
         videosByBlock[block.blockId].push({ id: video.id, filename: videoData.filename });
       }
     }
+
+    console.log('Videos created by block:', Object.entries(videosByBlock).map(([blockId, videos]) => 
+      ({ blockId, count: videos.length, ids: videos.map(v => v.id) })
+    ));
 
     // Generate all combinations recursively
     const generateCombinations = (

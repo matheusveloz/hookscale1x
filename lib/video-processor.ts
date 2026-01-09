@@ -49,6 +49,9 @@ export async function processJobCombinations(
     // Combine all videos into one array for lookup
     const allVideos = [...hooks, ...bodies, ...ctas];
 
+    console.log(`Found videos for job: ${hooks.length} hooks, ${bodies.length} bodies, ${ctas.length} CTAs`);
+    console.log('All video IDs:', allVideos.map(v => ({ id: v.id, type: v.type, filename: v.filename })));
+
     if (allVideos.length === 0) {
       throw new Error('No videos found for this job');
     }
