@@ -41,8 +41,14 @@ export async function getVideoMetadata(filePath: string): Promise<VideoMetadata>
 }
 
 export async function getVideoDuration(filePath: string): Promise<number> {
-  const metadata = await getVideoMetadata(filePath);
-  return metadata.duration;
+  try {
+    const metadata = await getVideoMetadata(filePath);
+    return metadata.duration;
+  } catch (error) {
+    console.error('Error getting video duration, returning 0:', error);
+    // Se não conseguir obter a duração, retorna 0 em vez de falhar
+    return 0;
+  }
 }
 
 export async function concatenateVideos(

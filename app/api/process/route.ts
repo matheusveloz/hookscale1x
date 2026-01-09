@@ -5,9 +5,29 @@ import { getJob } from "@/lib/db";
 export const runtime = "nodejs";
 export const maxDuration = 300; // 5 minutes
 
+// SSE endpoint - aceita tanto GET quanto POST
+export async function GET(request: NextRequest) {
+  return handleProcess(request);
+}
+
 export async function POST(request: NextRequest) {
+  return handleProcess(request);
+}
+
+async function handleProcess(request: NextRequest) {
   try {
-    const { jobId } = await request.json();
+    // Aceita jobId via query (GET) ou body (POST)
+    const searchParams = request.nextUrl.searchParams;
+    let jobId = searchParams.get('jobId');
+    
+    if (!jobId && request.method === 'POST') {
+      try {
+        const body = await request.json();
+        jobId = body.jobId;
+      } catch (e) {
+        // Se não conseguir ler o body, tenta só com query params
+      }
+    }
 
     if (!jobId) {
       return new Response(

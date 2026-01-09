@@ -19,27 +19,48 @@ export async function uploadToBlob(
   }
 }
 
-export async function downloadFromBlob(url: string, destinationPath: string): Promise<void> {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Failed to download: ${response.statusText}`);
+export async function downloadFromBlob(url: string, destinationPath: string, retries = 3): Promise<void> {
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      console.log(`Downloading from blob (attempt ${attempt + 1}/${retries}): ${url}`);
+      
+      const response = await fetch(url, {
+        // Adicionar timeout
+        signal: AbortSignal.timeout(30000), // 30 segundos
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to download: ${response.statusText}`);
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      // Ensure directory exists
+      const dir = path.dirname(destinationPath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+
+      fs.writeFileSync(destinationPath, buffer);
+      console.log(`✓ Downloaded successfully: ${destinationPath}`);
+      return; // Sucesso!
+      
+    } catch (error) {
+      lastError = error as Error;
+      console.error(`Attempt ${attempt + 1} failed:`, error);
+      
+      if (attempt < retries - 1) {
+        // Aguarda antes de tentar novamente
+        await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+      }
     }
-
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    // Ensure directory exists
-    const dir = path.dirname(destinationPath);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-
-    fs.writeFileSync(destinationPath, buffer);
-  } catch (error) {
-    console.error('Error downloading from blob:', error);
-    throw new Error('Failed to download file from storage');
   }
+
+  console.error('All download attempts failed:', lastError);
+  throw new Error(`Failed to download file from storage after ${retries} attempts: ${lastError?.message}`);
 }
 
 export async function deleteFromBlob(url: string): Promise<void> {
