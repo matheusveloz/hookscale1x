@@ -112,7 +112,7 @@ export function StructureSelector({ structure, onStructureChange }: StructureSel
                   if (e.key === "Escape") setEditingIndex(null);
                 }}
                 autoFocus
-                className="w-20 px-1 text-sm bg-white/20 text-white border-none outline-none rounded"
+                className="w-24 px-2 py-0.5 text-sm bg-background text-foreground border border-foreground/20 outline-none rounded"
               />
             ) : (
               <span 
@@ -165,7 +165,7 @@ export function StructureSelector({ structure, onStructureChange }: StructureSel
               disabled={!canAdd}
             >
               <Plus className="w-3 h-3 mr-1" />
-              {defaultLabels[type]}
+              {defaultLabels[type as keyof typeof defaultLabels]}
               {count > 0 && (
                 <span className="ml-1 text-xs text-foreground/40">({count}/3)</span>
               )}

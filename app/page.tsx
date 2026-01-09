@@ -182,29 +182,41 @@ export default function HomePage() {
                    onStructureChange={setStructure}
                  />
 
-                 {/* Upload Zones based on structure */}
-                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                   {structure.some(b => b.type === 'hook') && (
-                     <UploadZone
-                       type="hook"
-                       videos={hookVideos}
-                       onVideosChange={setHookVideos}
-                     />
-                   )}
-                   {structure.some(b => b.type === 'body') && (
-                     <UploadZone
-                       type="body"
-                       videos={bodyVideos}
-                       onVideosChange={setBodyVideos}
-                     />
-                   )}
-                   {structure.some(b => b.type === 'cta') && (
-                     <UploadZone
-                       type="cta"
-                       videos={ctaVideos}
-                       onVideosChange={setCtaVideos}
-                     />
-                   )}
+                 {/* Upload Zones - Order follows structure */}
+                 <div className="space-y-4">
+                   <p className="text-xs text-center text-foreground/50">
+                     Upload zones match your structure order
+                   </p>
+                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                     {/* Show unique types in order they first appear */}
+                     {Array.from(new Set(structure.map(b => b.type))).map(type => {
+                       const block = structure.find(b => b.type === type);
+                       const customName = block?.customName;
+                       
+                       return (
+                         <div key={type} className="space-y-2">
+                           {customName && (
+                             <div className="text-xs text-center font-medium text-green-500">
+                               "{customName}"
+                             </div>
+                           )}
+                           <UploadZone
+                             type={type}
+                             videos={
+                               type === 'hook' ? hookVideos :
+                               type === 'body' ? bodyVideos :
+                               ctaVideos
+                             }
+                             onVideosChange={
+                               type === 'hook' ? setHookVideos :
+                               type === 'body' ? setBodyVideos :
+                               setCtaVideos
+                             }
+                           />
+                         </div>
+                       );
+                     })}
+                   </div>
                  </div>
 
                  {totalCombinations > 0 && hasAllRequiredVideos && (
