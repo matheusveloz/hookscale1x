@@ -12,6 +12,12 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, ArrowRight, ArrowLeft, CheckCircle2 } from "lucide-react";
 import type { UploadedVideo, VideoStructure } from "@/types/uploaded-video";
 
+const defaultLabels = {
+  hook: "Hook",
+  body: "Body",
+  cta: "CTA",
+};
+
 export default function HomePage() {
   const router = useRouter();
   const [step, setStep] = useState<1 | 2>(1);
