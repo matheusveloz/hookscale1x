@@ -8,4 +8,10 @@ export interface UploadedVideo {
   error?: string;
 }
 
-export type VideoStructure = ('hook' | 'body' | 'cta')[];
+export interface StructureBlock {
+  type: 'hook' | 'body' | 'cta';
+  customName?: string;
+  id: string;
+}
+
+export type VideoStructure = StructureBlock[];

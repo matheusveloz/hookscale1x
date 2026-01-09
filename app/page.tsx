@@ -16,7 +16,10 @@ export default function HomePage() {
   const router = useRouter();
   const [step, setStep] = useState<1 | 2>(1);
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>("16:9");
-  const [structure, setStructure] = useState<VideoStructure>(['hook', 'body']);
+  const [structure, setStructure] = useState<VideoStructure>([
+    { type: 'hook', id: 'hook-1' },
+    { type: 'body', id: 'body-1' }
+  ]);
   const [hookVideos, setHookVideos] = useState<UploadedVideo[]>([]);
   const [bodyVideos, setBodyVideos] = useState<UploadedVideo[]>([]);
   const [ctaVideos, setCtaVideos] = useState<UploadedVideo[]>([]);
@@ -30,11 +33,11 @@ export default function HomePage() {
     return ctaVideos;
   };
 
-  const totalCombinations = structure.reduce((acc, type) => {
-    const videos = getVideosForType(type);
+  const totalCombinations = structure.reduce((acc, block) => {
+    const videos = getVideosForType(block.type);
     return acc === 0 ? (videos.length || 1) : acc * (videos.length || 1);
   }, 0);
-  const requiredVideos = structure.map(type => getVideosForType(type));
+  const requiredVideos = structure.map(block => getVideosForType(block.type));
   const hasAllRequiredVideos = requiredVideos.every(videos => videos.length > 0);
   const allUploaded = requiredVideos.every(videos => videos.every(v => v.blob_url));
   const canSubmit = hasAllRequiredVideos && allUploaded && !isCreatingJob;
@@ -181,21 +184,21 @@ export default function HomePage() {
 
                  {/* Upload Zones based on structure */}
                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                   {structure.includes('hook') && (
+                   {structure.some(b => b.type === 'hook') && (
                      <UploadZone
                        type="hook"
                        videos={hookVideos}
                        onVideosChange={setHookVideos}
                      />
                    )}
-                   {structure.includes('body') && (
+                   {structure.some(b => b.type === 'body') && (
                      <UploadZone
                        type="body"
                        videos={bodyVideos}
                        onVideosChange={setBodyVideos}
                      />
                    )}
-                   {structure.includes('cta') && (
+                   {structure.some(b => b.type === 'cta') && (
                      <UploadZone
                        type="cta"
                        videos={ctaVideos}
@@ -210,9 +213,10 @@ export default function HomePage() {
                        <span className="text-green-500 font-semibold text-lg">{totalCombinations}</span> combinations will be generated
                      </span>
                      <p className="text-xs text-foreground/40 mt-1">
-                       {structure.map(type => {
-                         const videos = getVideosForType(type);
-                         return `${videos.length} ${type}${videos.length !== 1 ? 's' : ''}`;
+                       {structure.map(block => {
+                         const videos = getVideosForType(block.type);
+                         const name = block.customName || defaultLabels[block.type];
+                         return `${videos.length} ${name}${videos.length !== 1 ? 's' : ''}`;
                        }).join(' × ')}
                      </p>
                    </div>
