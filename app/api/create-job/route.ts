@@ -118,11 +118,12 @@ export async function POST(request: NextRequest) {
     let comboIndex = 1;
     for (const combo of allCombinations) {
       // Use first video as hook_video_id, second as body_video_id for DB compatibility
-      const hookVideoId = combo[0]?.videoId;
-      const bodyVideoId = combo[1]?.videoId || combo[0]?.videoId;
+      const hookVideoId = combo[0]?.id;
+      const bodyVideoId = combo[1]?.id || combo[0]?.id;
 
       // All video IDs in order for N-video concatenation
-      const allVideoIds = combo.map(v => v.videoId);
+      const allVideoIds = combo.map(v => v.id);
+      console.log(`Combo #${comboIndex} video IDs:`, allVideoIds);
 
       // Generate filename from all parts
       const filenameParts = combo.map((v) => {
