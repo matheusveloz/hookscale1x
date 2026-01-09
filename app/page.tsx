@@ -118,10 +118,10 @@ export default function HomePage() {
       {/* Header */}
       <header className="border-b border-foreground/10">
         <div className="container mx-auto flex items-center justify-between px-4 py-4">
-          <h1 className="text-3xl logo-font">
+          <h1 className="text-xl font-semibold">
             <span className="text-foreground">Hook</span>
             <span className="text-green-500">Scale</span>
-            <span className="text-foreground/40 text-xl font-normal">.ai</span>
+            <span className="text-foreground/40 text-sm font-normal">.ai</span>
           </h1>
           <ThemeToggle />
         </div>
