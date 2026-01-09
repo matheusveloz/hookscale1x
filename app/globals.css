@@ -36,24 +36,20 @@ button:disabled {
   cursor: not-allowed;
 }
 
-/* Logo font - Pixel Art 2D with Outline */
+/* Logo font - Pixel Art 2D Clean */
 .logo-font {
-  font-family: var(--font-pixel), 'Pixelify Sans', 'Press Start 2P', monospace;
+  font-family: var(--font-pixel), 'Pixelify Sans', monospace;
   font-weight: 700;
   text-transform: lowercase;
-  letter-spacing: 1px;
-  /* Outline effect */
+  letter-spacing: 2px;
+  /* Clean outline */
   text-shadow: 
-    -2px -2px 0 var(--background),
-    2px -2px 0 var(--background),
-    -2px 2px 0 var(--background),
-    2px 2px 0 var(--background),
-    -2px 0 0 var(--background),
-    2px 0 0 var(--background),
-    0 -2px 0 var(--background),
-    0 2px 0 var(--background);
-  image-rendering: pixelated;
-  -webkit-font-smoothing: none;
+    -1px -1px 0 var(--background),
+    1px -1px 0 var(--background),
+    -1px 1px 0 var(--background),
+    1px 1px 0 var(--background);
+  image-rendering: -webkit-optimize-contrast;
+  -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
