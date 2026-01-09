@@ -188,20 +188,26 @@ export default function HomePage() {
                  />
 
                  {/* Upload Zones - Horizontal Scroll */}
-                 <div className="space-y-4">
-                   <div className="flex items-center justify-between">
-                     <p className="text-sm font-medium text-foreground/70">
+                 <div className="space-y-3">
+                   <div className="flex items-center justify-between px-1">
+                     <p className="text-sm font-medium">
                        Upload videos for each block
                      </p>
                      <p className="text-xs text-foreground/50">
                        {structure.length} block{structure.length !== 1 ? 's' : ''}
-                       {structure.length > 3 && " · Scroll →"}
+                       {structure.length > 2 && " · Scroll →"}
                      </p>
                    </div>
 
-                   {/* Horizontal scroll container */}
-                   <div className="overflow-x-auto pb-4">
-                     <div className="flex gap-4 min-w-min">
+                   {/* Horizontal scroll container with custom scrollbar */}
+                   <div 
+                     className="overflow-x-auto overflow-y-hidden pb-3"
+                     style={{
+                       scrollbarWidth: 'thin',
+                       scrollbarColor: '#10b981 transparent'
+                     }}
+                   >
+                     <div className="flex gap-4" style={{ minWidth: 'max-content' }}>
                        {structure.map((block, index) => {
                          const videos = videosByBlock[block.id] || [];
                          const blockName = block.customName || defaultLabels[block.type];
@@ -209,15 +215,15 @@ export default function HomePage() {
                          return (
                            <div
                              key={block.id}
-                             className="flex-shrink-0 w-[320px] space-y-2"
+                             className="flex-shrink-0 w-[400px] space-y-2"
                            >
                              {/* Block header */}
                              <div className="flex items-center justify-between px-1">
                                <div className="flex items-center gap-2">
-                                 <span className="text-xs font-medium text-foreground/50">
-                                   #{index + 1}
-                                 </span>
-                                 <Badge className="bg-green-500/20 text-green-500 border-green-500/30 text-xs">
+                                 <div className="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center text-xs font-bold">
+                                   {index + 1}
+                                 </div>
+                                 <Badge className="bg-green-500/20 text-green-500 border-green-500/30">
                                    {blockName}
                                  </Badge>
                                </div>
@@ -238,16 +244,16 @@ export default function HomePage() {
                      </div>
                    </div>
 
-                   {/* Preview calculation */}
-                   <div className="p-3 rounded-lg bg-foreground/5 border border-foreground/10 text-center">
+                   {/* Combination counter */}
+                   <div className="text-center pt-2">
                      <p className="text-xs text-foreground/50">
                        {structure.map((block, i) => {
                          const videos = videosByBlock[block.id] || [];
                          const name = block.customName || defaultLabels[block.type];
                          return (
                            <span key={block.id}>
-                             {i > 0 && <span className="mx-1">×</span>}
-                             <span className="font-medium">{videos.length || 0}</span>
+                             {i > 0 && <span className="mx-1 text-foreground/30">×</span>}
+                             <span className="font-semibold text-green-500">{videos.length || 0}</span>
                              <span className="text-foreground/40 ml-1">{name}</span>
                            </span>
                          );
