@@ -182,40 +182,56 @@ export default function HomePage() {
                    onStructureChange={setStructure}
                  />
 
-                 {/* Upload Zones - Order follows structure */}
+                 {/* Upload Zones - Shows all blocks in structure */}
                  <div className="space-y-4">
                    <p className="text-xs text-center text-foreground/50">
-                     Upload zones match your structure order
+                     {structure.length} block{structure.length !== 1 ? 's' : ''} in your structure
                    </p>
-                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                     {/* Show unique types in order they first appear */}
-                     {Array.from(new Set(structure.map(b => b.type))).map(type => {
-                       const block = structure.find(b => b.type === type);
-                       const customName = block?.customName;
-                       
+                   
+                   {/* Group blocks by type and show separate zones for each occurrence */}
+                   <div className="space-y-6">
+                     {['hook', 'body', 'cta'].map(type => {
+                       const blocksOfType = structure.filter(b => b.type === type);
+                       if (blocksOfType.length === 0) return null;
+
+                       const customName = blocksOfType[0].customName;
+                       const videos = type === 'hook' ? hookVideos : type === 'body' ? bodyVideos : ctaVideos;
+                       const onChange = type === 'hook' ? setHookVideos : type === 'body' ? setBodyVideos : setCtaVideos;
+
                        return (
-                         <div key={type} className="space-y-2">
+                         <div key={type} className="space-y-3">
                            {customName && (
-                             <div className="text-xs text-center font-medium text-green-500">
-                               "{customName}"
+                             <div className="text-center">
+                               <Badge className="bg-green-500/20 text-green-500 border-green-500/30">
+                                 "{customName}" {blocksOfType.length > 1 && `(${blocksOfType.length}x in structure)`}
+                               </Badge>
                              </div>
                            )}
                            <UploadZone
-                             type={type}
-                             videos={
-                               type === 'hook' ? hookVideos :
-                               type === 'body' ? bodyVideos :
-                               ctaVideos
-                             }
-                             onVideosChange={
-                               type === 'hook' ? setHookVideos :
-                               type === 'body' ? setBodyVideos :
-                               setCtaVideos
-                             }
+                             type={type as any}
+                             videos={videos}
+                             onVideosChange={onChange}
                            />
                          </div>
                        );
                      })}
+                   </div>
+
+                   {/* Structure Preview */}
+                   <div className="mt-6 p-4 rounded-lg bg-foreground/5 border border-foreground/10">
+                     <p className="text-xs font-medium text-foreground/60 mb-2">Final Structure:</p>
+                     <div className="flex flex-wrap items-center gap-2">
+                       {structure.map((block, i) => (
+                         <span key={block.id} className="flex items-center gap-1">
+                           <span className="px-2 py-1 bg-foreground/10 rounded text-xs">
+                             {block.customName || defaultLabels[block.type]}
+                           </span>
+                           {i < structure.length - 1 && (
+                             <span className="text-foreground/30">→</span>
+                           )}
+                         </span>
+                       ))}
+                     </div>
                    </div>
                  </div>
 
