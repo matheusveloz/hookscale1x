@@ -7,10 +7,9 @@ import type { Combination } from "@/types";
 
 interface VideoGridProps {
   combinations: Combination[];
-  onDownload: (id: string, filename: string) => void;
 }
 
-export function VideoGrid({ combinations, onDownload }: VideoGridProps) {
+export function VideoGrid({ combinations }: VideoGridProps) {
   if (combinations.length === 0) {
     return null;
   }

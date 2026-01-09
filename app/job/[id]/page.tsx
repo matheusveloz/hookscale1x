@@ -158,11 +158,6 @@ export default function JobPage() {
     }
   }, [combinations, displayedCombinations.length, page]);
 
-  // Not used anymore - downloads are direct from blob_url
-  const handleDownload = (id: string, filename: string) => {
-    // This function is kept for compatibility but not used
-    // Downloads are now direct <a> tags to blob_url
-  };
 
   const handleDownloadAll = () => {
     // Use pre-generated ZIP if available
@@ -312,7 +307,6 @@ export default function JobPage() {
         {displayedCombinations.length > 0 && (
           <VideoGrid
             combinations={displayedCombinations}
-            onDownload={handleDownload}
           />
         )}
 
