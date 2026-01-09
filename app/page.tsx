@@ -26,9 +26,8 @@ export default function HomePage() {
     { type: 'hook', id: 'hook-1' },
     { type: 'body', id: 'body-1' }
   ]);
-  const [hookVideos, setHookVideos] = useState<UploadedVideo[]>([]);
-  const [bodyVideos, setBodyVideos] = useState<UploadedVideo[]>([]);
-  const [ctaVideos, setCtaVideos] = useState<UploadedVideo[]>([]);
+  // Videos por bloco (cada bloco tem seus próprios vídeos)
+  const [videosByBlock, setVideosByBlock] = useState<Record<string, UploadedVideo[]>>({});
   const [isCreatingJob, setIsCreatingJob] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,30 +55,24 @@ export default function HomePage() {
 
     try {
       // Videos já estão no Blob, só precisa criar o job
+      const blocksData = structure.map(block => ({
+        blockId: block.id,
+        type: block.type,
+        customName: block.customName,
+        videos: (videosByBlock[block.id] || []).map(v => ({
+          filename: v.file.name,
+          blob_url: v.blob_url,
+          duration: v.duration || 0,
+          file_size: v.file.size,
+        })),
+      }));
+
       const response = await fetch("/api/create-job", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           aspectRatio,
-          structure,
-          hooks: hookVideos.map(v => ({
-            filename: v.file.name,
-            blob_url: v.blob_url,
-            duration: v.duration || 0,
-            file_size: v.file.size,
-          })),
-          bodies: bodyVideos.map(v => ({
-            filename: v.file.name,
-            blob_url: v.blob_url,
-            duration: v.duration || 0,
-            file_size: v.file.size,
-          })),
-          ctas: ctaVideos.map(v => ({
-            filename: v.file.name,
-            blob_url: v.blob_url,
-            duration: v.duration || 0,
-            file_size: v.file.size,
-          })),
+          structure: blocksData,
         }),
       });
 
@@ -188,71 +181,81 @@ export default function HomePage() {
                    onStructureChange={setStructure}
                  />
 
-                 {/* Upload Zones - Shows all blocks in structure */}
+                 {/* Upload Zones - Horizontal Scroll */}
                  <div className="space-y-4">
-                   <p className="text-xs text-center text-foreground/50">
-                     {structure.length} block{structure.length !== 1 ? 's' : ''} in your structure
-                   </p>
-                   
-                   {/* Group blocks by type and show separate zones for each occurrence */}
-                   <div className="space-y-6">
-                     {['hook', 'body', 'cta'].map(type => {
-                       const blocksOfType = structure.filter(b => b.type === type);
-                       if (blocksOfType.length === 0) return null;
-
-                       const customName = blocksOfType[0].customName;
-                       const videos = type === 'hook' ? hookVideos : type === 'body' ? bodyVideos : ctaVideos;
-                       const onChange = type === 'hook' ? setHookVideos : type === 'body' ? setBodyVideos : setCtaVideos;
-
-                       return (
-                         <div key={type} className="space-y-3">
-                           {customName && (
-                             <div className="text-center">
-                               <Badge className="bg-green-500/20 text-green-500 border-green-500/30">
-                                 "{customName}" {blocksOfType.length > 1 && `(${blocksOfType.length}x in structure)`}
-                               </Badge>
-                             </div>
-                           )}
-                           <UploadZone
-                             type={type as any}
-                             videos={videos}
-                             onVideosChange={onChange}
-                           />
-                         </div>
-                       );
-                     })}
+                   <div className="flex items-center justify-between">
+                     <p className="text-sm font-medium text-foreground/70">
+                       Upload videos for each block
+                     </p>
+                     <p className="text-xs text-foreground/50">
+                       {structure.length} block{structure.length !== 1 ? 's' : ''}
+                       {structure.length > 3 && " · Scroll →"}
+                     </p>
                    </div>
 
-                   {/* Structure Preview */}
-                   <div className="mt-6 p-4 rounded-lg bg-foreground/5 border border-foreground/10">
-                     <p className="text-xs font-medium text-foreground/60 mb-2">Final Structure:</p>
-                     <div className="flex flex-wrap items-center gap-2">
-                       {structure.map((block, i) => (
-                         <span key={block.id} className="flex items-center gap-1">
-                           <span className="px-2 py-1 bg-foreground/10 rounded text-xs">
-                             {block.customName || defaultLabels[block.type]}
-                           </span>
-                           {i < structure.length - 1 && (
-                             <span className="text-foreground/30">→</span>
-                           )}
-                         </span>
-                       ))}
+                   {/* Horizontal scroll container */}
+                   <div className="overflow-x-auto pb-4">
+                     <div className="flex gap-4 min-w-min">
+                       {structure.map((block, index) => {
+                         const videos = videosByBlock[block.id] || [];
+                         const blockName = block.customName || defaultLabels[block.type];
+
+                         return (
+                           <div
+                             key={block.id}
+                             className="flex-shrink-0 w-[320px] space-y-2"
+                           >
+                             {/* Block header */}
+                             <div className="flex items-center justify-between px-1">
+                               <div className="flex items-center gap-2">
+                                 <span className="text-xs font-medium text-foreground/50">
+                                   #{index + 1}
+                                 </span>
+                                 <Badge className="bg-green-500/20 text-green-500 border-green-500/30 text-xs">
+                                   {blockName}
+                                 </Badge>
+                               </div>
+                               <span className="text-xs text-foreground/40">
+                                 {videos.length} file{videos.length !== 1 ? 's' : ''}
+                               </span>
+                             </div>
+
+                             {/* Upload zone */}
+                             <UploadZone
+                               type={block.type}
+                               videos={videos}
+                               onVideosChange={(newVideos) => updateVideosForBlock(block.id, newVideos)}
+                             />
+                           </div>
+                         );
+                       })}
                      </div>
+                   </div>
+
+                   {/* Preview calculation */}
+                   <div className="p-3 rounded-lg bg-foreground/5 border border-foreground/10 text-center">
+                     <p className="text-xs text-foreground/50">
+                       {structure.map((block, i) => {
+                         const videos = videosByBlock[block.id] || [];
+                         const name = block.customName || defaultLabels[block.type];
+                         return (
+                           <span key={block.id}>
+                             {i > 0 && <span className="mx-1">×</span>}
+                             <span className="font-medium">{videos.length || 0}</span>
+                             <span className="text-foreground/40 ml-1">{name}</span>
+                           </span>
+                         );
+                       })}
+                     </p>
                    </div>
                  </div>
 
                  {totalCombinations > 0 && hasAllRequiredVideos && (
-                   <div className="text-center py-3 bg-foreground/5 rounded-lg">
-                     <span className="text-sm text-foreground/50">
-                       <span className="text-green-500 font-semibold text-lg">{totalCombinations}</span> combinations will be generated
+                   <div className="text-center py-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                     <span className="text-sm">
+                       <span className="text-green-500 font-bold text-2xl">{totalCombinations}</span>
+                       <span className="text-foreground/60 ml-2">combinations</span>
                      </span>
-                     <p className="text-xs text-foreground/40 mt-1">
-                       {structure.map(block => {
-                         const videos = getVideosForType(block.type);
-                         const name = block.customName || defaultLabels[block.type];
-                         return `${videos.length} ${name}${videos.length !== 1 ? 's' : ''}`;
-                       }).join(' × ')}
-                     </p>
                    </div>
                  )}
 
