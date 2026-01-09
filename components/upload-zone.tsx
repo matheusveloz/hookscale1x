@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import { Upload, X, CheckCircle2, FileVideo, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { cn, validateVideoFile } from "@/lib/utils";
+import { cn, formatBytes, validateVideoFile } from "@/lib/utils";
 import type { VideoType } from "@/types";
 import type { UploadedVideo } from "@/types/uploaded-video";
 
