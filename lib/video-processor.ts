@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as os from 'os';
 import { downloadFromBlob, uploadToBlob, cleanupTempFiles } from './blob-storage';
-import { concatenateVideos, concatenateVideosWithReencode } from './ffmpeg';
+import { concatenateMultipleVideos } from './ffmpeg';
 import {
   getVideosByJob,
   getPendingCombinations,
@@ -41,12 +41,16 @@ export async function processJobCombinations(
 
     console.log(`Processing with aspect ratio: ${aspectRatio} (${dimensions.width}x${dimensions.height})`);
 
-    // Get all hooks and bodies
+    // Get all videos (hooks, bodies, ctas)
     const hooks = await getVideosByJob(jobId, 'hook');
     const bodies = await getVideosByJob(jobId, 'body');
+    const ctas = await getVideosByJob(jobId, 'cta');
 
-    if (hooks.length === 0 || bodies.length === 0) {
-      throw new Error('No hooks or bodies found for this job');
+    // Combine all videos into one array for lookup
+    const allVideos = [...hooks, ...bodies, ...ctas];
+
+    if (allVideos.length === 0) {
+      throw new Error('No videos found for this job');
     }
 
     // Get all pending combinations
@@ -66,8 +70,7 @@ export async function processJobCombinations(
           try {
             await processSingleCombination(
               combination,
-              hooks,
-              bodies,
+              allVideos,
               callbacks,
               overallIndex + 1,
               total,
@@ -114,40 +117,51 @@ export async function processJobCombinations(
 
 async function processSingleCombination(
   combination: Combination,
-  hooks: Video[],
-  bodies: Video[],
+  allVideos: Video[],
   callbacks: ProcessCallback,
   currentIndex: number,
   total: number,
   dimensions: { width: number; height: number }
 ): Promise<void> {
-  const hook = hooks.find((h) => h.id === combination.hook_id);
-  const body = bodies.find((b) => b.id === combination.body_id);
+  // Get video IDs from video_ids field (new) or fallback to hook_id/body_id (old)
+  let videoIds: string[];
+  if (combination.video_ids) {
+    videoIds = JSON.parse(combination.video_ids);
+  } else {
+    videoIds = [combination.hook_id, combination.body_id];
+  }
 
-  if (!hook || !body) {
-    throw new Error('Hook or body video not found');
+  // Find all videos in order
+  const videos = videoIds
+    .map(id => allVideos.find(v => v.id === id))
+    .filter((v): v is Video => v !== undefined);
+
+  if (videos.length < 2) {
+    throw new Error('Not enough videos found for combination');
   }
 
   callbacks.onProgress(currentIndex, total, combination.output_filename);
 
   // Create temp directory
   const tempDir = path.join(os.tmpdir(), 'hookscale', combination.id);
-  const hookPath = path.join(tempDir, `hook_${hook.id}.mp4`);
-  const bodyPath = path.join(tempDir, `body_${body.id}.mp4`);
   const outputPath = path.join(tempDir, combination.output_filename);
+  const videoPaths: string[] = [];
 
   try {
-    console.log(`Processing ${combination.output_filename}...`);
+    console.log(`Processing ${combination.output_filename} with ${videos.length} videos...`);
 
-    // Download videos from blob
-    await downloadFromBlob(hook.blob_url, hookPath);
-    await downloadFromBlob(body.blob_url, bodyPath);
+    // Download all videos from blob
+    for (let i = 0; i < videos.length; i++) {
+      const video = videos[i];
+      const videoPath = path.join(tempDir, `video${i}_${video.id}.mp4`);
+      await downloadFromBlob(video.blob_url, videoPath);
+      videoPaths.push(videoPath);
+    }
 
-    // Concatenate videos usando re-encoding (mais lento mas garante compatibilidade)
-    console.log(`Concatenando vídeos com re-encoding (${dimensions.width}x${dimensions.height})...`);
-    await concatenateVideosWithReencode(
-      hookPath,
-      bodyPath,
+    // Concatenate all videos using re-encoding
+    console.log(`Concatenating ${videos.length} videos (${dimensions.width}x${dimensions.height})...`);
+    await concatenateMultipleVideos(
+      videoPaths,
       outputPath,
       dimensions.width,
       dimensions.height
@@ -164,8 +178,8 @@ async function processSingleCombination(
     console.log(`Completed ${combination.output_filename}`);
   } finally {
     // Cleanup temp files
-    cleanupTempFiles(hookPath, bodyPath, outputPath);
-    
+    cleanupTempFiles(...videoPaths, outputPath);
+
     // Try to remove temp directory
     try {
       const fs = await import('fs');

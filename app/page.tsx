@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, ArrowRight, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { UploadedVideo, VideoStructure } from "@/types/uploaded-video";
 
 const defaultLabels = {
@@ -115,7 +116,7 @@ export default function HomePage() {
       <main className="container mx-auto px-4 py-8 max-w-[1400px]">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8">
           {/* Main Content - Left Side */}
-          <div>
+          <div className="min-w-0">
             {/* Progress Steps - Minimal */}
             <div className="flex items-center justify-center mb-8 gap-3">
               <button
@@ -172,7 +173,7 @@ export default function HomePage() {
 
             {/* Step 2: Upload */}
             {step === 2 && (
-              <div className="space-y-6 animate-fade-in">
+              <div className="space-y-6 animate-fade-in overflow-hidden">
                 <div className="text-center mb-6">
                   <div className="flex items-center justify-center gap-2 mb-1">
                     <h2 className="text-xl font-semibold">Upload Videos</h2>
@@ -187,28 +188,21 @@ export default function HomePage() {
                    onStructureChange={setStructure}
                  />
 
-                 {/* Upload Zones - Horizontal Scroll */}
-                 <div className="space-y-3">
-                   <div className="flex items-center justify-between px-1">
-                     <p className="text-sm font-medium">
-                       Upload videos for each block
-                     </p>
-                     <p className="text-xs text-foreground/50">
-                       {structure.length} block{structure.length !== 1 ? 's' : ''}
-                       {structure.length > 2 && " · Scroll →"}
-                     </p>
-                   </div>
-
-                   {/* Horizontal scroll container with custom scrollbar */}
-                   <div 
-                     className="overflow-x-auto overflow-y-hidden pb-3 -mx-4 px-4"
-                     style={{
-                       scrollbarWidth: 'thin',
-                       scrollbarColor: '#10b981 transparent',
-                       maxWidth: '100%'
-                     }}
-                   >
-                     <div className="flex gap-4 w-max">
+                 {/* Upload Zones */}
+                 <div className="space-y-4">
+                   {/* Scroll container - wrapper with hidden overflow to prevent page expansion */}
+                   <div className="rounded-lg border border-foreground/10 bg-foreground/[0.02] p-4">
+                     <div
+                       className="overflow-x-auto pb-2"
+                       style={{ scrollbarWidth: 'thin', scrollbarColor: '#10b981 transparent' }}
+                     >
+                       <div
+                         className="flex gap-4"
+                         style={{
+                           width: structure.length > 2 ? 'max-content' : '100%',
+                           justifyContent: structure.length <= 2 ? 'center' : 'flex-start'
+                         }}
+                       >
                        {structure.map((block, index) => {
                          const videos = videosByBlock[block.id] || [];
                          const blockName = block.customName || defaultLabels[block.type];
@@ -216,61 +210,49 @@ export default function HomePage() {
                          return (
                            <div
                              key={block.id}
-                             className="flex-shrink-0 w-[380px] space-y-2"
+                             className="flex-shrink-0 w-[280px] rounded-lg border border-foreground/10 bg-background p-3 space-y-3"
                            >
                              {/* Block header */}
-                             <div className="flex items-center justify-between px-1">
-                               <div className="flex items-center gap-2">
-                                 <div className="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center text-xs font-bold">
-                                   {index + 1}
-                                 </div>
-                                 <Badge className="bg-green-500/20 text-green-500 border-green-500/30">
-                                   {blockName}
-                                 </Badge>
+                             <div className="flex items-center gap-2">
+                               <div className="w-5 h-5 rounded-full bg-green-500 text-white flex items-center justify-center text-xs font-bold">
+                                 {index + 1}
                                </div>
-                               <span className="text-xs text-foreground/40">
-                                 {videos.length} file{videos.length !== 1 ? 's' : ''}
+                               <span className="font-medium text-sm">{blockName}</span>
+                               <span className="text-xs text-foreground/40 ml-auto">
+                                 {videos.length}
                                </span>
                              </div>
 
-                             {/* Upload zone */}
+                             {/* Upload zone - compact */}
                              <UploadZone
                                type={block.type}
                                videos={videos}
                                onVideosChange={(newVideos) => updateVideosForBlock(block.id, newVideos)}
+                               compact
                              />
                            </div>
                          );
                        })}
+                       </div>
                      </div>
                    </div>
 
-                   {/* Combination counter */}
-                   <div className="text-center pt-2">
-                     <p className="text-xs text-foreground/50">
-                       {structure.map((block, i) => {
-                         const videos = videosByBlock[block.id] || [];
-                         const name = block.customName || defaultLabels[block.type];
-                         return (
-                           <span key={block.id}>
-                             {i > 0 && <span className="mx-1 text-foreground/30">×</span>}
-                             <span className="font-semibold text-green-500">{videos.length || 0}</span>
-                             <span className="text-foreground/40 ml-1">{name}</span>
-                           </span>
-                         );
-                       })}
-                     </p>
+                   {/* Combination formula */}
+                   <div className="flex items-center justify-center gap-2 text-sm">
+                     {structure.map((block, i) => {
+                       const videos = videosByBlock[block.id] || [];
+                       return (
+                         <span key={block.id} className="flex items-center gap-1">
+                           {i > 0 && <span className="text-foreground/30 mx-1">×</span>}
+                           <span className="font-bold text-green-500">{videos.length || 0}</span>
+                         </span>
+                       );
+                     })}
+                     <span className="text-foreground/30 mx-1">=</span>
+                     <span className="font-bold text-lg text-green-500">{totalCombinations || 0}</span>
+                     <span className="text-foreground/50 text-xs">combinations</span>
                    </div>
                  </div>
-
-                 {totalCombinations > 0 && hasAllRequiredVideos && (
-                   <div className="text-center py-3 bg-green-500/10 border border-green-500/20 rounded-lg">
-                     <span className="text-sm">
-                       <span className="text-green-500 font-bold text-2xl">{totalCombinations}</span>
-                       <span className="text-foreground/60 ml-2">combinations</span>
-                     </span>
-                   </div>
-                 )}
 
                 {error && (
                   <div className="rounded-lg bg-red-500/10 p-3 border border-red-500/20">

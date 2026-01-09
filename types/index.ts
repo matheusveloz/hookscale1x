@@ -13,6 +13,7 @@ export interface Job {
   total_combinations: number;
   processed_count: number;
   aspect_ratio: AspectRatio;
+  structure: string | null; // JSON string of structure
   zip_url: string | null;
   created_at: Date;
   updated_at: Date;
@@ -34,6 +35,7 @@ export interface Combination {
   job_id: string;
   hook_id: string;
   body_id: string;
+  video_ids: string | null; // JSON array of all video IDs in order
   output_filename: string;
   blob_url: string | null;
   status: CombinationStatus;

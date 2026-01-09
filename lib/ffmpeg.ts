@@ -124,24 +124,50 @@ export async function concatenateVideosWithReencode(
   width: number = 1920,
   height: number = 1080
 ): Promise<void> {
+  return concatenateMultipleVideos([inputPath1, inputPath2], outputPath, width, height);
+}
+
+export async function concatenateMultipleVideos(
+  inputPaths: string[],
+  outputPath: string,
+  width: number = 1920,
+  height: number = 1080
+): Promise<void> {
+  if (inputPaths.length < 2) {
+    throw new Error('At least 2 videos are required for concatenation');
+  }
+
   return new Promise((resolve, reject) => {
-    console.log(`Re-encoding: ${inputPath1} + ${inputPath2} -> ${outputPath} (${width}x${height})`);
-    
-    ffmpeg()
-      .input(inputPath1)
-      .input(inputPath2)
-      .complexFilter([
-        // Normalizar inputs para mesma resolução/framerate
-        `[0:v]scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=30[v0]`,
-        `[1:v]scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=30[v1]`,
-        // Concatenar vídeos e áudios
-        '[v0][0:a][v1][1:a]concat=n=2:v=1:a=1[outv][outa]'
-      ])
+    console.log(`Concatenating ${inputPaths.length} videos -> ${outputPath} (${width}x${height})`);
+
+    const command = ffmpeg();
+
+    // Add all input files
+    inputPaths.forEach(inputPath => {
+      command.input(inputPath);
+    });
+
+    // Build filter for N videos
+    const scaleFilters: string[] = [];
+    const concatInputs: string[] = [];
+
+    inputPaths.forEach((_, index) => {
+      scaleFilters.push(
+        `[${index}:v]scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=30[v${index}]`
+      );
+      concatInputs.push(`[v${index}][${index}:a]`);
+    });
+
+    // Add concat filter
+    const concatFilter = `${concatInputs.join('')}concat=n=${inputPaths.length}:v=1:a=1[outv][outa]`;
+
+    command
+      .complexFilter([...scaleFilters, concatFilter])
       .outputOptions([
         '-map', '[outv]',
         '-map', '[outa]',
         '-c:v', 'libx264',
-        '-preset', 'medium',
+        '-preset', 'fast',
         '-crf', '23',
         '-c:a', 'aac',
         '-b:a', '128k',
@@ -149,19 +175,19 @@ export async function concatenateVideosWithReencode(
       ])
       .output(outputPath)
       .on('start', (commandLine) => {
-        console.log('FFmpeg re-encode command:', commandLine);
+        console.log('FFmpeg command:', commandLine);
       })
       .on('progress', (progress) => {
         if (progress.percent) {
-          console.log(`Re-encoding: ${Math.round(progress.percent)}% concluído`);
+          console.log(`Processing: ${Math.round(progress.percent)}% done`);
         }
       })
       .on('end', () => {
-        console.log(`✓ Vídeo concatenado com sucesso: ${outputPath}`);
+        console.log(`✓ Video concatenated: ${outputPath}`);
         resolve();
       })
       .on('error', (err) => {
-        console.error('Erro na concatenação:', err);
+        console.error('Concatenation error:', err);
         reject(err);
       })
       .run();

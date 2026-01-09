@@ -5,7 +5,8 @@ import type { Job, Video, Combination, VideoType, JobStatus } from '@/types';
 export async function createJob(
   name: string | null,
   totalCombinations: number,
-  aspectRatio: string = '16:9'
+  aspectRatio: string = '16:9',
+  structure?: any
 ): Promise<Job> {
   const { data, error } = await supabase
     .from('jobs')
@@ -13,6 +14,7 @@ export async function createJob(
       name,
       total_combinations: totalCombinations,
       aspect_ratio: aspectRatio,
+      structure: structure ? JSON.stringify(structure) : null,
     })
     .select()
     .single();
@@ -105,7 +107,8 @@ export async function createCombination(
   jobId: string,
   hookId: string,
   bodyId: string,
-  outputFilename: string
+  outputFilename: string,
+  videoIds?: string[] // All video IDs in order
 ): Promise<Combination> {
   const { data, error } = await supabase
     .from('combinations')
@@ -114,6 +117,7 @@ export async function createCombination(
       hook_id: hookId,
       body_id: bodyId,
       output_filename: outputFilename,
+      video_ids: videoIds ? JSON.stringify(videoIds) : null,
     })
     .select()
     .single();
