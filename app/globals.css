@@ -36,11 +36,16 @@ button:disabled {
   cursor: not-allowed;
 }
 
-/* Logo font */
+/* Logo font - Pixel Art with Outline */
 .logo-font {
-  font-family: 'Segoe Script', 'Lucida Handwriting', 'Brush Script MT', 'Comic Sans MS', cursive;
-  font-style: italic;
-  letter-spacing: -0.5px;
+  font-family: var(--font-press-start), 'Press Start 2P', 'Courier New', monospace;
+  text-transform: lowercase;
+  letter-spacing: 2px;
+  -webkit-text-stroke: 1px currentColor;
+  paint-order: stroke fill;
+  text-shadow: 
+    2px 2px 0px rgba(0, 0, 0, 0.1),
+    -1px -1px 0px rgba(255, 255, 255, 0.1);
 }
 
 /* Animations */
