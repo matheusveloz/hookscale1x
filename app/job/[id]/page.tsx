@@ -240,7 +240,6 @@ export default function JobPage() {
                 )}
               </div>
               
-              <div className="w-full">
               <Badge
                 variant={
                   processingStatus === "completed"
@@ -251,17 +250,16 @@ export default function JobPage() {
                     ? "default"
                     : "secondary"
                 }
-
-                  className="text-sm px-4 py-1"
-                >
-                  {processingStatus === "completed"
-                    ? "Complete"
-                    : processingStatus === "failed"
-                    ? "Failed"
-                    : processingStatus === "processing"
-                    ? "Processing"
-                    : "Pending"}
-                </Badge>
+                className="text-sm px-4 py-1"
+              >
+                {processingStatus === "completed"
+                  ? "Complete"
+                  : processingStatus === "failed"
+                  ? "Failed"
+                  : processingStatus === "processing"
+                  ? "Processing"
+                  : "Pending"}
+              </Badge>
             </div>
           </CardHeader>
           <CardContent>
