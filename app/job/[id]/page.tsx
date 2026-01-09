@@ -62,17 +62,7 @@ export default function JobPage() {
     setError(null);
 
     try {
-      const response = await fetch("/api/process", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jobId }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to start processing");
-      }
-
-      // Create EventSource to listen to SSE
+      // Create EventSource to listen to SSE (usa GET, não precisa do POST)
       const eventSource = new EventSource(`/api/process?jobId=${jobId}`);
       eventSourceRef.current = eventSource;
 
