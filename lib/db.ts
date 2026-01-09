@@ -2,10 +2,18 @@ import { supabase } from './supabase';
 import type { Job, Video, Combination, VideoType, JobStatus } from '@/types';
 
 // Jobs
-export async function createJob(name: string | null, totalCombinations: number): Promise<Job> {
+export async function createJob(
+  name: string | null,
+  totalCombinations: number,
+  aspectRatio: string = '16:9'
+): Promise<Job> {
   const { data, error } = await supabase
     .from('jobs')
-    .insert({ name, total_combinations: totalCombinations })
+    .insert({
+      name,
+      total_combinations: totalCombinations,
+      aspect_ratio: aspectRatio,
+    })
     .select()
     .single();
 

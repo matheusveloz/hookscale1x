@@ -8,8 +8,10 @@ import {
   updateCombination,
   updateJobProgress,
   updateJobStatus,
+  getJob,
 } from './db';
-import type { Combination, Video } from '@/types';
+import { getAspectRatioDimensions } from './aspect-ratio-helper';
+import type { Combination, Video, AspectRatio } from '@/types';
 
 const BATCH_SIZE = parseInt(process.env.BATCH_SIZE || '8');
 
@@ -25,6 +27,17 @@ export async function processJobCombinations(
   try {
     // Update job status to processing
     await updateJobStatus(jobId, 'processing');
+
+    // Get job details (including aspect ratio)
+    const job = await getJob(jobId);
+    if (!job) {
+      throw new Error('Job not found');
+    }
+
+    const aspectRatio = (job.aspect_ratio || '16:9') as AspectRatio;
+    const dimensions = getAspectRatioDimensions(aspectRatio);
+
+    console.log(`Processing with aspect ratio: ${aspectRatio} (${dimensions.width}x${dimensions.height})`);
 
     // Get all hooks and bodies
     const hooks = await getVideosByJob(jobId, 'hook');
@@ -49,7 +62,15 @@ export async function processJobCombinations(
         batch.map(async (combination, batchIndex) => {
           const overallIndex = i + batchIndex;
           try {
-            await processSingleCombination(combination, hooks, bodies, callbacks, overallIndex + 1, total);
+            await processSingleCombination(
+              combination,
+              hooks,
+              bodies,
+              callbacks,
+              overallIndex + 1,
+              total,
+              dimensions
+            );
           } catch (error) {
             console.error(`Error processing combination ${combination.id}:`, error);
             // Mark as failed but continue
@@ -84,7 +105,8 @@ async function processSingleCombination(
   bodies: Video[],
   callbacks: ProcessCallback,
   currentIndex: number,
-  total: number
+  total: number,
+  dimensions: { width: number; height: number }
 ): Promise<void> {
   const hook = hooks.find((h) => h.id === combination.hook_id);
   const body = bodies.find((b) => b.id === combination.body_id);
@@ -109,8 +131,14 @@ async function processSingleCombination(
     await downloadFromBlob(body.blob_url, bodyPath);
 
     // Concatenate videos usando re-encoding (mais lento mas garante compatibilidade)
-    console.log(`Concatenando vídeos com re-encoding...`);
-    await concatenateVideosWithReencode(hookPath, bodyPath, outputPath);
+    console.log(`Concatenando vídeos com re-encoding (${dimensions.width}x${dimensions.height})...`);
+    await concatenateVideosWithReencode(
+      hookPath,
+      bodyPath,
+      outputPath,
+      dimensions.width,
+      dimensions.height
+    );
 
     // Upload result to blob
     const fs = await import('fs');

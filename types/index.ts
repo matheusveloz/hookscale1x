@@ -4,12 +4,15 @@ export type JobStatus = 'pending' | 'processing' | 'completed' | 'failed';
 
 export type CombinationStatus = 'pending' | 'processing' | 'completed' | 'failed';
 
+export type AspectRatio = '9:16' | '1:1' | '3:4' | '16:9';
+
 export interface Job {
   id: string;
   name: string | null;
   status: JobStatus;
   total_combinations: number;
   processed_count: number;
+  aspect_ratio: AspectRatio;
   created_at: Date;
   updated_at: Date;
 }

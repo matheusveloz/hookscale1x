@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS jobs (
   status VARCHAR(50) DEFAULT 'pending',
   total_combinations INTEGER,
   processed_count INTEGER DEFAULT 0,
+  aspect_ratio VARCHAR(10) DEFAULT '16:9',
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );

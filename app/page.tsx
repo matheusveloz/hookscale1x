@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { UploadZone } from "@/components/upload-zone";
+import { AspectRatioSelector, type AspectRatio } from "@/components/aspect-ratio-selector";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -10,6 +11,7 @@ import { Loader2 } from "lucide-react";
 
 export default function HomePage() {
   const router = useRouter();
+  const [aspectRatio, setAspectRatio] = useState<AspectRatio>("16:9");
   const [hookFiles, setHookFiles] = useState<File[]>([]);
   const [bodyFiles, setBodyFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -26,6 +28,9 @@ export default function HomePage() {
 
     try {
       const formData = new FormData();
+
+      // Add aspect ratio
+      formData.append("aspectRatio", aspectRatio);
 
       // Add hook files
       hookFiles.forEach((file) => {
@@ -72,11 +77,19 @@ export default function HomePage() {
           <CardHeader>
             <CardTitle>Combinar Vídeos de Hooks e Bodies</CardTitle>
             <CardDescription>
-              Faça upload de vídeos de hooks e bodies. O sistema irá gerar todas as
+              Escolha o formato e faça upload dos vídeos. O sistema irá gerar todas as
               combinações possíveis automaticamente.
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Aspect Ratio Selector */}
+            <div className="mb-8">
+              <AspectRatioSelector
+                selected={aspectRatio}
+                onSelect={setAspectRatio}
+              />
+            </div>
+
             <div className="grid gap-6 md:grid-cols-2">
               <UploadZone
                 type="hook"

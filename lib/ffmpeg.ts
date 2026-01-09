@@ -120,18 +120,20 @@ export async function concatenateVideos(
 export async function concatenateVideosWithReencode(
   inputPath1: string,
   inputPath2: string,
-  outputPath: string
+  outputPath: string,
+  width: number = 1920,
+  height: number = 1080
 ): Promise<void> {
   return new Promise((resolve, reject) => {
-    console.log(`Re-encoding: ${inputPath1} + ${inputPath2} -> ${outputPath}`);
+    console.log(`Re-encoding: ${inputPath1} + ${inputPath2} -> ${outputPath} (${width}x${height})`);
     
     ffmpeg()
       .input(inputPath1)
       .input(inputPath2)
       .complexFilter([
         // Normalizar inputs para mesma resolução/framerate
-        '[0:v]scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=30[v0]',
-        '[1:v]scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=30[v1]',
+        `[0:v]scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=30[v0]`,
+        `[1:v]scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=30[v1]`,
         // Concatenar vídeos e áudios
         '[v0][0:a][v1][1:a]concat=n=2:v=1:a=1[outv][outa]'
       ])

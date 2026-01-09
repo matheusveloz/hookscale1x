@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
     await initializeDatabase();
 
     const formData = await request.formData();
+    const aspectRatio = formData.get("aspectRatio") as string || "16:9";
     const hookFiles = formData.getAll("hooks") as File[];
     const bodyFiles = formData.getAll("bodies") as File[];
 
@@ -50,10 +51,11 @@ export async function POST(request: NextRequest) {
 
     const totalCombinations = hookFiles.length * bodyFiles.length;
 
-    // Create job
+    // Create job with aspect ratio
     const job = await createJob(
       `Job ${new Date().toLocaleString("pt-BR")}`,
-      totalCombinations
+      totalCombinations,
+      aspectRatio
     );
 
     console.log(`Created job ${job.id} with ${totalCombinations} combinations`);
