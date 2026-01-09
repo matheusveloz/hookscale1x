@@ -158,7 +158,10 @@ export default function JobPage() {
               <div className="w-9 h-9 rounded-lg bg-green-500 flex items-center justify-center text-white font-bold">
                 H
               </div>
-              <h1 className="text-2xl font-bold">HookScale</h1>
+              <h1 className="text-2xl font-bold">
+                <span className="text-foreground">Hook</span>
+                <span className="text-green-500">Scale</span>
+              </h1>
             </div>
           </div>
           <ThemeToggle />
@@ -227,7 +230,7 @@ export default function JobPage() {
             {processingStatus === "pending" && !isProcessing && (
               <Button 
                 onClick={handleStartProcessing} 
-                className="w-full bg-green-500 hover:bg-green-600 text-white"
+                className="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white shadow-lg shadow-green-500/30"
               >
                 Start Processing
               </Button>

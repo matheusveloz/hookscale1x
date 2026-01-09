@@ -62,8 +62,14 @@ export function RecentJobs() {
     }
   }, [loadingMore, hasMore, page]);
 
-  const handleDownloadZip = (jobId: string) => {
-    window.open(`/api/download-zip?jobId=${jobId}`, "_blank");
+  const handleDownloadZip = async (jobId: string, job: Job) => {
+    // Se já tem ZIP pronto, usa direto
+    if (job.zip_url) {
+      window.open(job.zip_url, "_blank");
+    } else {
+      // Fallback: gera na hora
+      window.open(`/api/download-zip?jobId=${jobId}`, "_blank");
+    }
   };
 
   const handleViewJob = (jobId: string) => {
@@ -109,16 +115,15 @@ export function RecentJobs() {
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <div 
+        <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="max-h-[600px] overflow-y-auto px-6 space-y-3"
-          style={{ paddingTop: '1rem', paddingBottom: '1rem' }}
+          className="max-h-[600px] overflow-y-auto px-4 py-4 flex flex-col gap-3"
         >
           {jobs.map((job) => (
-            <Card
+            <div
               key={job.id}
-              className="p-4 hover:shadow-md transition-all cursor-pointer border-l-4 border-l-transparent hover:border-l-green-500"
+              className="p-4 rounded-lg border bg-card hover:shadow-md transition-all cursor-pointer border-l-4 border-l-transparent hover:border-l-green-500"
               onClick={() => handleViewJob(job.id)}
             >
               <div className="flex items-start justify-between gap-4">
@@ -191,16 +196,16 @@ export function RecentJobs() {
                   {job.status === "completed" && (
                     <Button
                       size="sm"
-                      onClick={() => handleDownloadZip(job.id)}
-                      className="w-full bg-green-500 hover:bg-green-600 text-white text-xs"
+                      onClick={() => handleDownloadZip(job.id, job)}
+                      className="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white text-xs shadow-md"
                     >
                       <Download className="w-3 h-3 mr-1" />
-                      ZIP
+                      {job.zip_url ? "ZIP ⚡" : "ZIP"}
                     </Button>
                   )}
                 </div>
               </div>
-            </Card>
+            </div>
           ))}
 
           {loadingMore && (
@@ -217,7 +222,7 @@ export function RecentJobs() {
         </div>
 
         {jobs.length > 0 && (
-          <div className="px-6 pt-4 border-t border-foreground/10">
+          <div className="px-4 py-3 border-t border-foreground/10">
             <p className="text-xs text-center text-foreground/40">
               Showing {jobs.length} job{jobs.length !== 1 ? 's' : ''} · Scroll for more
             </p>

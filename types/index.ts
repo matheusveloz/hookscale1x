@@ -13,6 +13,7 @@ export interface Job {
   total_combinations: number;
   processed_count: number;
   aspect_ratio: AspectRatio;
+  zip_url: string | null;
   created_at: Date;
   updated_at: Date;
 }

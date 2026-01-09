@@ -50,6 +50,15 @@ export async function updateJobProgress(id: string, processedCount: number): Pro
   if (error) throw error;
 }
 
+export async function updateJobZipUrl(id: string, zipUrl: string): Promise<void> {
+  const { error } = await supabase
+    .from('jobs')
+    .update({ zip_url: zipUrl, updated_at: new Date().toISOString() })
+    .eq('id', id);
+
+  if (error) throw error;
+}
+
 // Videos
 export async function createVideo(
   jobId: string,

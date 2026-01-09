@@ -8,9 +8,11 @@ import {
   updateCombination,
   updateJobProgress,
   updateJobStatus,
+  updateJobZipUrl,
   getJob,
 } from './db';
 import { getAspectRatioDimensions } from './aspect-ratio-helper';
+import { generateAndUploadZip } from './zip-generator';
 import type { Combination, Video, AspectRatio } from '@/types';
 
 const BATCH_SIZE = parseInt(process.env.BATCH_SIZE || '8');
@@ -92,6 +94,17 @@ export async function processJobCombinations(
     // Mark job as completed
     await updateJobStatus(jobId, 'completed');
     console.log(`Job ${jobId} completed successfully`);
+
+    // Generate and upload ZIP
+    try {
+      console.log(`Generating ZIP for job ${jobId}...`);
+      const zipUrl = await generateAndUploadZip(jobId);
+      await updateJobZipUrl(jobId, zipUrl);
+      console.log(`ZIP generated and uploaded: ${zipUrl}`);
+    } catch (error) {
+      console.error(`Error generating ZIP for job ${jobId}:`, error);
+      // Don't fail the job if ZIP generation fails
+    }
   } catch (error) {
     console.error(`Error processing job ${jobId}:`, error);
     await updateJobStatus(jobId, 'failed');

@@ -75,7 +75,10 @@ export default function HomePage() {
             <div className="w-9 h-9 rounded-lg bg-green-500 flex items-center justify-center text-white font-bold">
               H
             </div>
-            <h1 className="text-2xl font-bold">HookScale</h1>
+            <h1 className="text-2xl font-bold">
+              <span className="text-foreground">Hook</span>
+              <span className="text-green-500">Scale</span>
+            </h1>
           </div>
           <ThemeToggle />
         </div>
@@ -91,14 +94,14 @@ export default function HomePage() {
                 <div
                   className={`flex items-center justify-center w-10 h-10 rounded-full font-semibold transition-all ${
                     step >= 1
-                      ? "bg-green-500 text-white shadow-lg"
+                      ? "bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-lg shadow-green-500/30"
                       : "bg-foreground/10 text-foreground/40"
                   }`}
                 >
                   {step > 1 ? <CheckCircle2 className="w-5 h-5" /> : "1"}
                 </div>
                 <div className="text-left">
-                  <p className={`font-semibold text-sm ${step >= 1 ? "" : "text-foreground/60"}`}>
+                  <p className={`font-semibold text-sm ${step >= 1 ? "text-green-600 dark:text-green-400" : "text-foreground/60"}`}>
                     Choose Format
                   </p>
                   <p className="text-xs text-foreground/40">Select aspect ratio</p>
@@ -111,14 +114,14 @@ export default function HomePage() {
                 <div
                   className={`flex items-center justify-center w-10 h-10 rounded-full font-semibold transition-all ${
                     step >= 2
-                      ? "bg-green-500 text-white shadow-lg"
+                      ? "bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-lg shadow-green-500/30"
                       : "bg-foreground/10 text-foreground/40"
                   }`}
                 >
                   2
                 </div>
                 <div className="text-left">
-                  <p className={`font-semibold text-sm ${step >= 2 ? "" : "text-foreground/60"}`}>
+                  <p className={`font-semibold text-sm ${step >= 2 ? "text-green-600 dark:text-green-400" : "text-foreground/60"}`}>
                     Upload Videos
                   </p>
                   <p className="text-xs text-foreground/40">Add hooks & bodies</p>
@@ -155,7 +158,7 @@ export default function HomePage() {
                     <Button 
                       onClick={() => setStep(2)} 
                       size="lg"
-                      className="bg-green-500 hover:bg-green-600 text-white"
+                      className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white shadow-lg shadow-green-500/30"
                     >
                       Next: Upload Videos
                       <ArrowRight className="ml-2 w-5 h-5" />
@@ -222,7 +225,7 @@ export default function HomePage() {
                       onClick={handleSubmit}
                       disabled={!canSubmit}
                       size="lg"
-                      className="bg-green-500 hover:bg-green-600 text-white"
+                      className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white shadow-lg shadow-green-500/30"
                     >
                       {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       {isUploading ? "Uploading..." : "Generate Combinations"}
