@@ -1,4 +1,4 @@
-export type VideoType = 'hook' | 'body';
+export type VideoType = 'hook' | 'body' | 'cta';
 
 export type JobStatus = 'pending' | 'processing' | 'completed' | 'failed';
 

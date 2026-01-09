@@ -24,7 +24,7 @@ export function UploadZone({ type, videos, onVideosChange }: UploadZoneProps) {
       file,
       type,
       uploading: true,
-      progress: 0,
+      progress: 10, // Start at 10%
     }));
 
     onVideosChange(prev => [...prev, ...newVideos]);
@@ -33,9 +33,19 @@ export function UploadZone({ type, videos, onVideosChange }: UploadZoneProps) {
     await Promise.all(
       files.map(async (file) => {
         try {
+          // Update to 30%
+          onVideosChange(prev =>
+            prev.map(v => v.file === file ? { ...v, progress: 30 } : v)
+          );
+
           const formData = new FormData();
           formData.append("file", file);
           formData.append("type", type);
+
+          // Update to 50%
+          onVideosChange(prev =>
+            prev.map(v => v.file === file ? { ...v, progress: 50 } : v)
+          );
 
           const response = await fetch("/api/upload-file", {
             method: "POST",
@@ -48,7 +58,7 @@ export function UploadZone({ type, videos, onVideosChange }: UploadZoneProps) {
 
           const data = await response.json();
 
-          // Update video with blob_url
+          // Update to 100% and mark complete
           onVideosChange(prev =>
             prev.map(v =>
               v.file === file
@@ -62,7 +72,7 @@ export function UploadZone({ type, videos, onVideosChange }: UploadZoneProps) {
           onVideosChange(prev =>
             prev.map(v =>
               v.file === file
-                ? { ...v, uploading: false, error: "Upload failed" }
+                ? { ...v, uploading: false, error: "Upload failed", progress: 0 }
                 : v
             )
           );
@@ -132,13 +142,33 @@ export function UploadZone({ type, videos, onVideosChange }: UploadZoneProps) {
     onVideosChange(videos.filter((_, i) => i !== index));
   };
 
+  const clearAll = () => {
+    onVideosChange([]);
+  };
+
+  const getTypeName = () => {
+    if (type === "hook") return "Hooks";
+    if (type === "body") return "Bodies";
+    return "CTAs";
+  };
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold">
-          {type === "hook" ? "Hooks" : "Bodies"}
-        </h3>
-        <span className="text-xs text-foreground/50">{videos.length} file(s)</span>
+        <h3 className="font-semibold">{getTypeName()}</h3>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-foreground/50">{videos.length} file(s)</span>
+          {videos.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearAll}
+              className="h-6 px-2 text-xs text-foreground/50 hover:text-red-500"
+            >
+              Clear All
+            </Button>
+          )}
+        </div>
       </div>
 
       <div
@@ -213,8 +243,8 @@ export function UploadZone({ type, videos, onVideosChange }: UploadZoneProps) {
               </div>
               {video.uploading && (
                 <div className="space-y-1">
-                  <Progress value={50} className="h-1" />
-                  <p className="text-xs text-foreground/40 text-center">Uploading...</p>
+                  <Progress value={video.progress || 0} className="h-1" />
+                  <p className="text-xs text-foreground/40 text-center">Uploading... {video.progress}%</p>
                 </div>
               )}
               {video.error && (

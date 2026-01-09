@@ -4,29 +4,40 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { UploadZone } from "@/components/upload-zone";
 import { AspectRatioSelector, type AspectRatio } from "@/components/aspect-ratio-selector";
+import { StructureSelector } from "@/components/structure-selector";
 import { RecentJobs } from "@/components/recent-jobs";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, ArrowRight, ArrowLeft, CheckCircle2 } from "lucide-react";
-import type { UploadedVideo } from "@/types/uploaded-video";
+import type { UploadedVideo, VideoStructure } from "@/types/uploaded-video";
 
 export default function HomePage() {
   const router = useRouter();
   const [step, setStep] = useState<1 | 2>(1);
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>("16:9");
+  const [structure, setStructure] = useState<VideoStructure>(['hook', 'body']);
   const [hookVideos, setHookVideos] = useState<UploadedVideo[]>([]);
   const [bodyVideos, setBodyVideos] = useState<UploadedVideo[]>([]);
+  const [ctaVideos, setCtaVideos] = useState<UploadedVideo[]>([]);
   const [isCreatingJob, setIsCreatingJob] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const totalCombinations = hookVideos.length * bodyVideos.length;
-  const allUploaded = 
-    hookVideos.length > 0 && 
-    bodyVideos.length > 0 &&
-    hookVideos.every(v => v.blob_url) &&
-    bodyVideos.every(v => v.blob_url);
-  const canSubmit = allUploaded && !isCreatingJob;
+  // Calculate combinations based on structure
+  const getVideosForType = (type: 'hook' | 'body' | 'cta') => {
+    if (type === 'hook') return hookVideos;
+    if (type === 'body') return bodyVideos;
+    return ctaVideos;
+  };
+
+  const totalCombinations = structure.reduce((acc, type) => {
+    const videos = getVideosForType(type);
+    return acc === 0 ? (videos.length || 1) : acc * (videos.length || 1);
+  }, 0);
+  const requiredVideos = structure.map(type => getVideosForType(type));
+  const hasAllRequiredVideos = requiredVideos.every(videos => videos.length > 0);
+  const allUploaded = requiredVideos.every(videos => videos.every(v => v.blob_url));
+  const canSubmit = hasAllRequiredVideos && allUploaded && !isCreatingJob;
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
@@ -155,26 +166,48 @@ export default function HomePage() {
                   <p className="text-sm text-foreground/50">Add your hook and body videos</p>
                 </div>
 
-                 <div className="grid gap-6 md:grid-cols-2">
-                   <UploadZone
-                     type="hook"
-                     videos={hookVideos}
-                     onVideosChange={setHookVideos}
-                   />
-                   <UploadZone
-                     type="body"
-                     videos={bodyVideos}
-                     onVideosChange={setBodyVideos}
-                   />
+                 {/* Structure Selector */}
+                 <StructureSelector
+                   structure={structure}
+                   onStructureChange={setStructure}
+                 />
+
+                 {/* Upload Zones based on structure */}
+                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                   {structure.includes('hook') && (
+                     <UploadZone
+                       type="hook"
+                       videos={hookVideos}
+                       onVideosChange={setHookVideos}
+                     />
+                   )}
+                   {structure.includes('body') && (
+                     <UploadZone
+                       type="body"
+                       videos={bodyVideos}
+                       onVideosChange={setBodyVideos}
+                     />
+                   )}
+                   {structure.includes('cta') && (
+                     <UploadZone
+                       type="cta"
+                       videos={ctaVideos}
+                       onVideosChange={setCtaVideos}
+                     />
+                   )}
                  </div>
 
-                 {totalCombinations > 0 && (
-                   <div className="text-center py-3">
+                 {totalCombinations > 0 && hasAllRequiredVideos && (
+                   <div className="text-center py-3 bg-foreground/5 rounded-lg">
                      <span className="text-sm text-foreground/50">
-                       <span className="text-green-500 font-semibold">{totalCombinations}</span> combinations
-                       <span className="text-foreground/30 mx-2">·</span>
-                       {hookVideos.length} hooks × {bodyVideos.length} bodies
+                       <span className="text-green-500 font-semibold text-lg">{totalCombinations}</span> combinations will be generated
                      </span>
+                     <p className="text-xs text-foreground/40 mt-1">
+                       {structure.map(type => {
+                         const videos = getVideosForType(type);
+                         return `${videos.length} ${type}${videos.length !== 1 ? 's' : ''}`;
+                       }).join(' × ')}
+                     </p>
                    </div>
                  )}
 
