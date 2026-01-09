@@ -2,9 +2,26 @@ import ffmpeg from 'fluent-ffmpeg';
 import * as path from 'path';
 import * as fs from 'fs';
 
-// Set FFmpeg path if provided in environment
-if (process.env.FFMPEG_PATH) {
-  ffmpeg.setFfmpegPath(process.env.FFMPEG_PATH);
+// Set FFmpeg path
+const ffmpegPath = process.env.FFMPEG_PATH || 'C:\\ffmpeg\\bin\\ffmpeg.exe';
+const ffprobePath = 'C:\\ffmpeg\\bin\\ffprobe.exe';
+
+try {
+  // Verificar se o FFmpeg existe
+  if (fs.existsSync(ffmpegPath)) {
+    ffmpeg.setFfmpegPath(ffmpegPath);
+    console.log(`✓ FFmpeg configurado: ${ffmpegPath}`);
+  } else {
+    console.warn(`⚠ FFmpeg não encontrado em: ${ffmpegPath}`);
+  }
+  
+  // Configurar ffprobe também
+  if (fs.existsSync(ffprobePath)) {
+    ffmpeg.setFfprobePath(ffprobePath);
+    console.log(`✓ FFprobe configurado: ${ffprobePath}`);
+  }
+} catch (error) {
+  console.error('Erro ao configurar FFmpeg:', error);
 }
 
 export interface VideoMetadata {
