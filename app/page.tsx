@@ -15,7 +15,7 @@ import type { UploadedVideo, VideoStructure } from "@/types/uploaded-video";
 export default function HomePage() {
   const router = useRouter();
   const [step, setStep] = useState<1 | 2>(1);
-  const [aspectRatio, setAspectRatio] = useState<AspectRatio>("16:9");
+  const [aspectRatio, setAspectRatio] = useState<AspectRatio>("9:16");
   const [structure, setStructure] = useState<VideoStructure>([
     { type: 'hook', id: 'hook-1' },
     { type: 'body', id: 'body-1' }
