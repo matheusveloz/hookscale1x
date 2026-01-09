@@ -5,11 +5,12 @@ import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ProgressBar } from "@/components/progress-bar";
-import { VideoList } from "@/components/video-list";
+import { VideoGrid } from "@/components/video-grid";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Download, Loader2 } from "lucide-react";
+import { ArrowLeft, Download, Loader2, CheckCircle2 } from "lucide-react";
 import type { Job, Combination, JobStatus } from "@/types";
+import { useCallback } from "react";
 
 export default function JobPage() {
   const params = useParams();
@@ -18,13 +19,18 @@ export default function JobPage() {
 
   const [job, setJob] = useState<Job | null>(null);
   const [combinations, setCombinations] = useState<Combination[]>([]);
+  const [displayedCombinations, setDisplayedCombinations] = useState<Combination[]>([]);
   const [currentProgress, setCurrentProgress] = useState(0);
   const [currentFile, setCurrentFile] = useState<string>();
   const [processingStatus, setProcessingStatus] = useState<JobStatus>("pending");
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
   const eventSourceRef = useRef<EventSource | null>(null);
   const hasStartedProcessing = useRef(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const ITEMS_PER_PAGE = 12;
 
   // Fetch job details
   useEffect(() => {
@@ -37,7 +43,15 @@ export default function JobPage() {
         const data = await response.json();
         setJob(data.job);
         setCombinations(data.combinations);
+        setDisplayedCombinations(data.combinations.slice(0, ITEMS_PER_PAGE));
         setProcessingStatus(data.job.status);
+        
+        // Set real progress
+        if (data.job.status === 'completed') {
+          setCurrentProgress(data.job.total_combinations);
+        } else if (data.job.status === 'processing') {
+          setCurrentProgress(data.job.processed_count || 0);
+        }
       } catch (err) {
         console.error("Error fetching job:", err);
         setError("Failed to load job details");
@@ -74,12 +88,14 @@ export default function JobPage() {
             setCurrentProgress(data.progress || 0);
             setCurrentFile(data.currentFile);
             setProcessingStatus("processing");
+            // Update displayed combinations as they complete
+            fetchCombinations();
           } else if (data.status === "completed") {
             setProcessingStatus("completed");
             setCurrentProgress(data.total || 0);
             setIsProcessing(false);
             eventSource.close();
-            // Refresh combinations
+            // Final refresh
             fetchCombinations();
           } else if (data.status === "failed" || data.status === "error") {
             setProcessingStatus("failed");
@@ -111,18 +127,45 @@ export default function JobPage() {
       if (response.ok) {
         const data = await response.json();
         setCombinations(data.combinations);
+        // Update displayed with current page
+        setDisplayedCombinations(data.combinations.slice(0, (page + 1) * ITEMS_PER_PAGE));
       }
     } catch (err) {
       console.error("Error fetching combinations:", err);
     }
   };
 
+  // Infinite scroll handler
+  const handleScroll = useCallback(() => {
+    if (!scrollContainerRef.current) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+    const isNearBottom = scrollTop + clientHeight >= scrollHeight - 100;
+
+    if (isNearBottom && displayedCombinations.length < combinations.length) {
+      const nextPage = page + 1;
+      const newDisplayed = combinations.slice(0, (nextPage + 1) * ITEMS_PER_PAGE);
+      setDisplayedCombinations(newDisplayed);
+      setPage(nextPage);
+    }
+  }, [combinations, displayedCombinations.length, page]);
+
   const handleDownload = (id: string, filename: string) => {
     window.open(`/api/download?id=${id}`, "_blank");
   };
 
   const handleDownloadAll = () => {
-    window.open(`/api/download-zip?jobId=${jobId}`, "_blank");
+    // Use pre-generated ZIP if available
+    if (job?.zip_url) {
+      window.open(job.zip_url, "_blank");
+    } else {
+      // Fallback to on-demand generation
+      window.open(`/api/download-zip?jobId=${jobId}`, "_blank");
+    }
+  };
+
+  const handleCreateNew = () => {
+    router.push("/");
   };
 
   // Cleanup on unmount
@@ -164,16 +207,40 @@ export default function JobPage() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
+      <main 
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className="container mx-auto px-4 py-8 max-w-6xl overflow-y-auto"
+      >
         <Card className="mb-8">
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
                 <CardTitle>{job.name || `Job ${job.id}`}</CardTitle>
                 <CardDescription>
                   {job.total_combinations} total combinations
                 </CardDescription>
               </div>
+              
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleCreateNew}
+                >
+                  Create New
+                </Button>
+                {processingStatus === "completed" && job.zip_url && (
+                  <Button
+                    onClick={handleDownloadAll}
+                    className="bg-green-500 hover:bg-green-600 text-white"
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Download All (ZIP) ⚡
+                  </Button>
+                )}
+              </div>
+              
+              <div className="w-full">
               <Badge
                 variant={
                   processingStatus === "completed"
@@ -234,14 +301,17 @@ export default function JobPage() {
           </CardContent>
         </Card>
 
-        {combinations.length > 0 && (
-          <VideoList
-            combinations={combinations}
+        {displayedCombinations.length > 0 && (
+          <VideoGrid
+            combinations={displayedCombinations}
             onDownload={handleDownload}
-            onDownloadAll={
-              processingStatus === "completed" ? handleDownloadAll : undefined
-            }
           />
+        )}
+
+        {displayedCombinations.length < combinations.length && (
+          <div className="flex justify-center py-8">
+            <Loader2 className="w-6 h-6 animate-spin text-foreground/40" />
+          </div>
         )}
       </main>
     </div>
